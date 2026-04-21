@@ -2,8 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BookIt.API.DTOs;
 
-public class RegisterDto
+public class RegisterVendorDto
 {
+    // User fields
     [Required(ErrorMessage = "El nombre es obligatorio.")]
     [MaxLength(100)]
     [MinLength(3, ErrorMessage = "El nombre debe tener al menos 3 caracteres.")]
@@ -26,7 +27,27 @@ public class RegisterDto
         ErrorMessage = "La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales (@$!%*?&).")]
     public string Password { get; set; } = string.Empty;
 
-    [MaxLength(50)]
-    [RegularExpression(@"^[a-z_]+$", ErrorMessage = "El rol solo puede contener letras minúsculas y guiones bajos.")]
-    public string Rol { get; set; } = "usuario";
+    // Service fields
+    [Required(ErrorMessage = "El nombre del servicio es obligatorio.")]
+    [MaxLength(150)]
+    [MinLength(3, ErrorMessage = "El nombre del servicio debe tener al menos 3 caracteres.")]
+    public string NombreServicio { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "La descripción del servicio es obligatoria.")]
+    [MaxLength(1000)]
+    [MinLength(10, ErrorMessage = "La descripción debe tener al menos 10 caracteres.")]
+    public string DescripcionServicio { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "La ubicación es obligatoria.")]
+    [MaxLength(255)]
+    [MinLength(3, ErrorMessage = "La ubicación debe tener al menos 3 caracteres.")]
+    public string Ubicacion { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El precio mínimo es obligatorio.")]
+    [Range(0.01, 999999.99, ErrorMessage = "El precio mínimo debe estar entre 0.01 y 999999.99")]
+    public decimal PrecioMinimo { get; set; }
+
+    [Required(ErrorMessage = "El precio máximo es obligatorio.")]
+    [Range(0.01, 999999.99, ErrorMessage = "El precio máximo debe estar entre 0.01 y 999999.99")]
+    public decimal PrecioMaximo { get; set; }
 }

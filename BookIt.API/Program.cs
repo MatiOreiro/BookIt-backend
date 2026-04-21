@@ -49,6 +49,7 @@ builder.Services.AddAuthorization();
 
 // ─── Repositories ────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 
 // ─── Services ────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -69,7 +70,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
 
-public partial class Program { }
+public static partial class Program { }
 

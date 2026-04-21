@@ -1,7 +1,8 @@
-@BookIt.API_HostAddress = http://localhost:5062
+@BookIt_API_HostAddress = https://localhost:7213
 
 ### Registro de usuario
-POST {{BookIt.API_HostAddress}}/auth/register
+POST {{BookIt_API_HostAddress}}/auth/register
+Accept: application/json
 Content-Type: application/json
 
 {
@@ -15,7 +16,8 @@ Content-Type: application/json
 ###
 
 ### Login de usuario
-POST {{BookIt.API_HostAddress}}/auth/login
+POST {{BookIt_API_HostAddress}}/auth/login
+Accept: application/json
 Content-Type: application/json
 
 {
@@ -28,7 +30,7 @@ Content-Type: application/json
 ### Listar usuarios (requiere token JWT)
 @token = <ingrese-su-token-aqui>
 
-GET {{BookIt.API_HostAddress}}/users
+GET {{BookIt_API_HostAddress}}/users
 Accept: application/json
 Authorization: Bearer {{token}}
 

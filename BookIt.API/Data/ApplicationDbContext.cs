@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<Service> Services { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,23 @@ public class ApplicationDbContext : DbContext
             entity.Property(u => u.Email).IsRequired().HasMaxLength(200);
             entity.Property(u => u.PasswordHash).IsRequired();
             entity.Property(u => u.Rol).IsRequired().HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Service>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.HasIndex(s => s.VendorId);
+            entity.Property(s => s.Nombre).IsRequired().HasMaxLength(150);
+            entity.Property(s => s.Descripcion).IsRequired().HasMaxLength(1000);
+            entity.Property(s => s.Ubicacion).IsRequired().HasMaxLength(255);
+            entity.Property(s => s.PrecioMinimo).HasPrecision(10, 2);
+            entity.Property(s => s.PrecioMaximo).HasPrecision(10, 2);
+
+            // Foreign key relationship
+            entity.HasOne(s => s.Vendor)
+                .WithMany()
+                .HasForeignKey(s => s.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         SeedData(modelBuilder);

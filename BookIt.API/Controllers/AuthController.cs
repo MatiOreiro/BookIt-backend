@@ -29,6 +29,19 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Registra un nuevo vendedor de servicios en el sistema con su servicio asociado.
+    /// </summary>
+    [HttpPost("register-vendor")]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RegisterVendor([FromBody] RegisterVendorDto dto)
+    {
+        var result = await _authService.RegisterVendorAsync(dto);
+        return StatusCode(StatusCodes.Status201Created, result);
+    }
+
+    /// <summary>
     /// Inicia sesión y devuelve un token JWT.
     /// </summary>
     [HttpPost("login")]
