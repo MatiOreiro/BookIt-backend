@@ -1,4 +1,5 @@
 using BookIt.API.DTOs;
+using BookIt.API.Models;
 using BookIt.API.Repositories.Interfaces;
 using BookIt.API.Services.Interfaces;
 
@@ -16,34 +17,25 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserDto>> GetAllAsync()
     {
         var users = await _userRepository.GetAllAsync();
-        return users.Select(u => new UserDto
-        {
-            Id = u.Id,
-            Nombre = u.Nombre,
-            Telefono = u.Telefono,
-            Email = u.Email,
-            Rol = u.Rol,
-            Activo = u.Activo,
-            FechaCreacion = u.FechaCreacion,
-            FechaActualizacion = u.FechaActualizacion
-        });
+        return users.Select(MapToDto);
     }
 
     public async Task<UserDto?> GetByIdAsync(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) return null;
-
-        return new UserDto
-        {
-            Id = user.Id,
-            Nombre = user.Nombre,
-            Telefono = user.Telefono,
-            Email = user.Email,
-            Rol = user.Rol,
-            Activo = user.Activo,
-            FechaCreacion = user.FechaCreacion,
-            FechaActualizacion = user.FechaActualizacion
-        };
+        return user == null ? null : MapToDto(user);
     }
+
+    private static UserDto MapToDto(User user) => new()
+    {
+        Id = user.Id,
+        Nombre = user.Nombre,
+        Telefono = user.Telefono,
+        Email = user.Email,
+        Rol = user.Rol,
+        Activo = user.Activo,
+        FechaCreacion = user.FechaCreacion,
+        FechaActualizacion = user.FechaActualizacion
+    };
 }
+
