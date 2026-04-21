@@ -1,0 +1,36 @@
+@BookIt.API_HostAddress = http://localhost:5062
+
+### Registro de usuario
+POST {{BookIt.API_HostAddress}}/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Juan Pérez",
+  "telefono": "011-1234-5678",
+  "email": "juan@example.com",
+  "password": "Password123!",
+  "rol": "usuario"
+}
+
+###
+
+### Login de usuario
+POST {{BookIt.API_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan@example.com",
+  "password": "Password123!"
+}
+
+###
+
+### Listar usuarios (requiere token JWT)
+@token = <ingrese-su-token-aqui>
+
+GET {{BookIt.API_HostAddress}}/users
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###
+
