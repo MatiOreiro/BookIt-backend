@@ -15,6 +15,7 @@ public class RegisterDto
 
     [Required(ErrorMessage = "El email es obligatorio.")]
     [EmailAddress(ErrorMessage = "El email no tiene un formato válido.")]
+    [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", ErrorMessage = "El email debe incluir un dominio válido (por ejemplo, usuario@dominio.com).")]
     [MaxLength(200, ErrorMessage = "El email no puede exceder 200 caracteres.")]
     public string Email { get; set; } = string.Empty;
 

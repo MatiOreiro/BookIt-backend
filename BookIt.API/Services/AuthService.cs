@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using BookIt.API.DTOs;
 using BookIt.API.Models;
 using BookIt.API.Repositories.Interfaces;
@@ -27,6 +29,9 @@ public class AuthService : IAuthService
     {
         // Normalize email for consistency
         var normalizedEmail = dto.Email.ToLower().Trim();
+
+        if (!IsStrictEmailValid(normalizedEmail))
+            throw new ArgumentException("El email debe incluir un dominio válido (por ejemplo, usuario@dominio.com).");
 
         // Validate email uniqueness first
         if (await _userRepository.ExistsByEmailAsync(normalizedEmail))
@@ -74,6 +79,9 @@ public class AuthService : IAuthService
     {
         // Normalize email for consistency
         var normalizedEmail = dto.Email.ToLower().Trim();
+
+        if (!IsStrictEmailValid(normalizedEmail))
+            throw new ArgumentException("El email debe incluir un dominio válido (por ejemplo, usuario@dominio.com).");
 
         // Validate email uniqueness first
         if (await _userRepository.ExistsByEmailAsync(normalizedEmail))
@@ -196,4 +204,20 @@ public class AuthService : IAuthService
         FechaCreacion = user.FechaCreacion,
         FechaActualizacion = user.FechaActualizacion
     };
+
+    private static bool IsStrictEmailValid(string email)
+    {
+        try
+        {
+            var normalized = new MailAddress(email).Address;
+            if (!string.Equals(normalized, email, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return Regex.IsMatch(normalized, @"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", RegexOptions.CultureInvariant);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

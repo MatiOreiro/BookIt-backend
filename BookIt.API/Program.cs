@@ -11,10 +11,19 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsDevelopment())
+{
+    LoadDotEnvIfExists(Path.Combine(builder.Environment.ContentRootPath, ".env"));
+    builder.Configuration.AddEnvironmentVariables();
+}
+
 // ─── Database ───────────────────────────────────────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? throw new InvalidOperationException("No se encontró la cadena de conexión.");
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("No se encontró la cadena de conexión. Configurá 'ConnectionStrings__DefaultConnection' en variables de entorno o .env.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -22,8 +31,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // ─── JWT Authentication ──────────────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"]
+    ?? Environment.GetEnvironmentVariable("JwtSettings__SecretKey")
     ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-    ?? throw new InvalidOperationException("JWT SecretKey no configurada.");
+    ?? Environment.GetEnvironmentVariable("Jwt__Key");
+
+if (string.IsNullOrWhiteSpace(secretKey))
+    throw new InvalidOperationException("JWT SecretKey no configurada. Definí 'JwtSettings__SecretKey' en variables de entorno o .env.");
+
+if (Encoding.UTF8.GetByteCount(secretKey) < 32)
+    throw new InvalidOperationException("JWT SecretKey inválida. Debe tener al menos 32 bytes para HS256.");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -47,6 +63,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // ─── Repositories ────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
@@ -65,10 +91,38 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 
+app.UseCors("Frontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+void LoadDotEnvIfExists(string envPath)
+{
+    if (!File.Exists(envPath))
+        return;
+
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        var trimmedLine = line.Trim();
+        if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith('#'))
+            continue;
+
+        var separatorIndex = trimmedLine.IndexOf('=');
+        if (separatorIndex <= 0)
+            continue;
+
+        var key = trimmedLine[..separatorIndex].Trim();
+        var value = trimmedLine[(separatorIndex + 1)..].Trim();
+
+        if (value.StartsWith('"') && value.EndsWith('"') && value.Length >= 2)
+            value = value[1..^1];
+
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(key)))
+            Environment.SetEnvironmentVariable(key, value);
+    }
+}
 
 await app.RunAsync();
 
