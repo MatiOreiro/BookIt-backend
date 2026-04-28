@@ -69,6 +69,24 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    /// <summary>
+    /// Cambia la contraseña del usuario autenticado.
+    /// </summary>
+    [HttpPost("me/change-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        await _userService.ChangePasswordAsync(currentUserId.Value, dto);
+        return NoContent();
+    }
+
     private bool CanAccessUser(Guid requestedUserId)
     {
         if (User.IsInRole("administrador"))

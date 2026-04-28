@@ -26,6 +26,24 @@ public class UserService : IUserService
         return user == null ? null : MapToDto(user);
     }
 
+    public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            throw new KeyNotFoundException("El usuario no existe.");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            throw new UnauthorizedAccessException("La contraseña actual es incorrecta.");
+
+        if (dto.CurrentPassword == dto.NewPassword)
+            throw new ArgumentException("La nueva contraseña debe ser distinta de la actual.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword, workFactor: 12);
+        user.FechaActualizacion = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+    }
+
     private static UserDto MapToDto(User user) => new()
     {
         Id = user.Id,
