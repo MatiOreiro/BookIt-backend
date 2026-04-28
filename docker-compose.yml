@@ -1,0 +1,14 @@
+services:
+  bookit-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
+      JwtSettings__SecretKey: ${JwtSettings__SecretKey}
+      JwtSettings__Issuer: ${JwtSettings__Issuer:-BookIt.API}
+      JwtSettings__Audience: ${JwtSettings__Audience:-BookIt.Client}
+      JwtSettings__ExpiresInMinutes: ${JwtSettings__ExpiresInMinutes:-60}
