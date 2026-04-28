@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using BookIt.API.Data;
 using BookIt.API.Middleware;
 using BookIt.API.Repositories;
@@ -6,6 +7,7 @@ using BookIt.API.Repositories.Interfaces;
 using BookIt.API.Services;
 using BookIt.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -63,6 +65,41 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var partitionKey = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+
+    options.AddPolicy("auth", httpContext =>
+    {
+        var partitionKey = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -92,6 +129,8 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseCors("Frontend");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

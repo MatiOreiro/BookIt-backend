@@ -1,11 +1,13 @@
 using BookIt.API.DTOs;
 using BookIt.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace BookIt.API.Controllers;
 
 [ApiController]
 [Route("auth")]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
