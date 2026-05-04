@@ -117,6 +117,7 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 // ─── Services ────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
 
 // ─── Controllers ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
