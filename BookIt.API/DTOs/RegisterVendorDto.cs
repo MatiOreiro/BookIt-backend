@@ -44,6 +44,11 @@ public class RegisterVendorDto
     [MinLength(3, ErrorMessage = "La ubicación debe tener al menos 3 caracteres.")]
     public string Ubicacion { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "El tipo de servicio es obligatorio.")]
+    [MaxLength(50)]
+    [MinLength(3, ErrorMessage = "El tipo de servicio debe tener al menos 3 caracteres.")]
+    public string TipoServicio { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "El precio mínimo es obligatorio.")]
     [Range(0.01, 999999.99, ErrorMessage = "El precio mínimo debe estar entre 0.01 y 999999.99")]
     public decimal PrecioMinimo { get; set; }
@@ -51,4 +56,8 @@ public class RegisterVendorDto
     [Required(ErrorMessage = "El precio máximo es obligatorio.")]
     [Range(0.01, 999999.99, ErrorMessage = "El precio máximo debe estar entre 0.01 y 999999.99")]
     public decimal PrecioMaximo { get; set; }
+
+    [Required(ErrorMessage = "Debe seleccionar al menos un tag.")]
+    [MinLength(1, ErrorMessage = "Debe seleccionar al menos un tag.")]
+    public List<Guid> TagIds { get; set; } = new();
 }

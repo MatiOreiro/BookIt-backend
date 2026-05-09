@@ -7,12 +7,14 @@ public class Service
     public string Nombre { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
     public string Ubicacion { get; set; } = string.Empty;
+    public string TipoServicio { get; set; } = string.Empty;
     public decimal PrecioMinimo { get; set; }
     public decimal PrecioMaximo { get; set; }
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;
 
-    // Navigation property
+    // Navigation properties
     public User? Vendor { get; set; }
+    public ICollection<ServiceTag> ServiceTags { get; set; } = new List<ServiceTag>();
 }

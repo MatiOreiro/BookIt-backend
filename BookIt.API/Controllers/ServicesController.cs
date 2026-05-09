@@ -77,4 +77,43 @@ public class ServicesController : ControllerBase
         var services = await _serviceService.GetByVendorIdAsync(vendorId);
         return Ok(services);
     }
+
+    /// <summary>
+    /// Filtra servicios por precio y tipo de servicio.
+    /// </summary>
+    [HttpGet("filter")]
+    [ProducesResponseType(typeof(IEnumerable<ServiceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> FilterByPriceAndType(
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] string? tipoServicio)
+    {
+        // Validar que minPrice no sea mayor que maxPrice
+        if (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice)
+            return BadRequest(new { message = "El precio mínimo no puede ser mayor que el precio máximo" });
+
+        var services = await _serviceService.FilterByPriceAndTypeAsync(minPrice, maxPrice, tipoServicio);
+        return Ok(services);
+    }
+
+    /// <summary>
+    /// Filtra servicios por precio, tipo de servicio y tags.
+    /// </summary>
+    [HttpGet("filter-by-tags")]
+    [ProducesResponseType(typeof(IEnumerable<ServiceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> FilterByTags(
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] string? tipoServicio,
+        [FromQuery] List<Guid>? tagIds)
+    {
+        // Validar que minPrice no sea mayor que maxPrice
+        if (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice)
+            return BadRequest(new { message = "El precio mínimo no puede ser mayor que el precio máximo" });
+
+        var services = await _serviceService.FilterByTagsAsync(minPrice, maxPrice, tipoServicio, tagIds);
+        return Ok(services);
+    }
 }

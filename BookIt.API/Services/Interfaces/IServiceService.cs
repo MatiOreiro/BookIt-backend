@@ -9,4 +9,6 @@ public interface IServiceService
     Task<ServiceDto?> GetByIdAsync(Guid id);
     Task<IEnumerable<ServiceDto>> GetByVendorIdAsync(Guid vendorId);
     Task<IEnumerable<ServiceDto>> SearchAsync(string? searchTerm, string? location, decimal? minPrice, decimal? maxPrice);
+    Task<IEnumerable<ServiceDto>> FilterByPriceAndTypeAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio);
+    Task<IEnumerable<ServiceDto>> FilterByTagsAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio, List<Guid>? tagIds);
 }

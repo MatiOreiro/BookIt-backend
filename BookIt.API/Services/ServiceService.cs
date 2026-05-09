@@ -75,6 +75,63 @@ public class ServiceService : IServiceService
         return filtered.Select(MapToDto);
     }
 
+    public async Task<IEnumerable<ServiceDto>> FilterByPriceAndTypeAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio)
+    {
+        var services = await _serviceRepository.GetActiveAsync();
+
+        var filtered = services.AsEnumerable();
+
+        if (minPrice.HasValue)
+        {
+            filtered = filtered.Where(s => s.PrecioMaximo >= minPrice.Value);
+        }
+
+        if (maxPrice.HasValue)
+        {
+            filtered = filtered.Where(s => s.PrecioMinimo <= maxPrice.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(tipoServicio))
+        {
+            var tipo = tipoServicio.ToLowerInvariant();
+            filtered = filtered.Where(s => s.TipoServicio.ToLowerInvariant() == tipo);
+        }
+
+        return filtered.Select(MapToDto);
+    }
+
+    public async Task<IEnumerable<ServiceDto>> FilterByTagsAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio, List<Guid>? tagIds)
+    {
+        var services = await _serviceRepository.GetActiveAsync();
+
+        var filtered = services.AsEnumerable();
+
+        if (minPrice.HasValue)
+        {
+            filtered = filtered.Where(s => s.PrecioMaximo >= minPrice.Value);
+        }
+
+        if (maxPrice.HasValue)
+        {
+            filtered = filtered.Where(s => s.PrecioMinimo <= maxPrice.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(tipoServicio))
+        {
+            var tipo = tipoServicio.ToLowerInvariant();
+            filtered = filtered.Where(s => s.TipoServicio.ToLowerInvariant() == tipo);
+        }
+
+        if (tagIds != null && tagIds.Count > 0)
+        {
+            filtered = filtered.Where(s =>
+                s.ServiceTags.Any(st => tagIds.Contains(st.TagId))
+            );
+        }
+
+        return filtered.Select(MapToDto);
+    }
+
     private static ServiceDto MapToDto(Service service) => new()
     {
         Id = service.Id,
@@ -82,6 +139,7 @@ public class ServiceService : IServiceService
         Nombre = service.Nombre,
         Descripcion = service.Descripcion,
         Ubicacion = service.Ubicacion,
+        TipoServicio = service.TipoServicio,
         PrecioMinimo = service.PrecioMinimo,
         PrecioMaximo = service.PrecioMaximo,
         Activo = service.Activo,
@@ -93,6 +151,12 @@ public class ServiceService : IServiceService
             Nombre = service.Vendor.Nombre,
             Email = service.Vendor.Email,
             Telefono = service.Vendor.Telefono
-        }
+        },
+        Tags = service.ServiceTags?.Select(st => new TagDto
+        {
+            Id = st.Tag!.Id,
+            Nombre = st.Tag.Nombre,
+            FechaCreacion = st.Tag.FechaCreacion
+        }).ToList() ?? new()
     };
 }
