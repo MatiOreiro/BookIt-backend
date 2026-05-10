@@ -91,6 +91,13 @@ public class AuthService : IAuthService
         if (dto.PrecioMinimo > dto.PrecioMaximo)
             throw new ArgumentException("El precio mínimo no puede ser mayor al precio máximo.");
 
+        var tipoServicio = dto.TipoServicio.Trim();
+        var isSalon = string.Equals(tipoServicio, "Salón", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(tipoServicio, "Salon", StringComparison.OrdinalIgnoreCase);
+
+        if (!isSalon && (dto.CategoryIds == null || dto.CategoryIds.Count == 0))
+            throw new ArgumentException("Los servicios que no son Salón deben tener al menos una categoría de evento.");
+
         var user = new User
         {
             Nombre = dto.Nombre.Trim(),
@@ -108,10 +115,17 @@ public class AuthService : IAuthService
             Nombre = dto.NombreServicio.Trim(),
             Descripcion = dto.DescripcionServicio.Trim(),
             Ubicacion = dto.Ubicacion.Trim(),
+            TipoServicio = tipoServicio,
             PrecioMinimo = dto.PrecioMinimo,
             PrecioMaximo = dto.PrecioMaximo,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
+            ,ServiceEventCategories = (dto.CategoryIds ?? new List<Guid>())
+                .Select(categoryId => new ServiceEventCategory
+                {
+                    EventCategoryId = categoryId
+                })
+                .ToList()
         };
 
         // Generate token BEFORE saving to DB to ensure security

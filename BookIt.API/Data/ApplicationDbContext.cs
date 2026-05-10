@@ -12,6 +12,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<EventCategory> EventCategories { get; set; }
+    public DbSet<ServiceEventCategory> ServiceEventCategories { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<ServiceTag> ServiceTags { get; set; }
 
@@ -49,12 +51,41 @@ public class ApplicationDbContext : DbContext
 
         });
 
+        modelBuilder.Entity<ServiceEventCategory>(entity =>
+        {
+            entity.HasKey(sc => new { sc.ServiceId, sc.EventCategoryId });
+
+            entity.HasOne(sc => sc.Service)
+                .WithMany(s => s.ServiceEventCategories)
+                .HasForeignKey(sc => sc.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(sc => sc.EventCategory)
+                .WithMany(c => c.ServiceEventCategories)
+                .HasForeignKey(sc => sc.EventCategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EventCategory>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Nombre).IsRequired().HasMaxLength(50);
+            entity.HasIndex(c => c.Nombre).IsUnique();
+        });
+
+        modelBuilder.Entity<Tag>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.Nombre).IsRequired().HasMaxLength(100);
+            entity.HasIndex(t => t.Nombre).IsUnique();
+        });
+
         modelBuilder.Entity<ServiceTag>(entity =>
         {
             entity.HasKey(st => new { st.ServiceId, st.TagId });
 
             entity.HasOne(st => st.Service)
-                .WithMany(s => s.ServiceTags)
+                .WithMany()
                 .HasForeignKey(st => st.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -62,13 +93,6 @@ public class ApplicationDbContext : DbContext
                 .WithMany(t => t.ServiceTags)
                 .HasForeignKey(st => st.TagId)
                 .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<Tag>(entity =>
-        {
-            entity.HasKey(t => t.Id);
-            entity.Property(t => t.Nombre).IsRequired().HasMaxLength(50);
-            entity.HasIndex(t => t.Nombre).IsUnique();
         });
 
         SeedData(modelBuilder);
@@ -92,16 +116,17 @@ public class ApplicationDbContext : DbContext
             FechaActualizacion = now
         });
 
-        var tags = new[]
+        var categories = new[]
         {
-            new Tag { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), Nombre = "Hogar", FechaCreacion = now },
-            new Tag { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), Nombre = "Tecnología", FechaCreacion = now },
-            new Tag { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), Nombre = "Salud", FechaCreacion = now },
-            new Tag { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"), Nombre = "Educación", FechaCreacion = now },
-            new Tag { Id = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), Nombre = "Limpieza", FechaCreacion = now },
-            new Tag { Id = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), Nombre = "Reparación", FechaCreacion = now }
+            new EventCategory { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), Nombre = "Boda", FechaCreacion = now },
+            new EventCategory { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), Nombre = "Cumpleaños de XV", FechaCreacion = now },
+            new EventCategory { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), Nombre = "Cumpleaños", FechaCreacion = now },
+            new EventCategory { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"), Nombre = "Evento corporativo", FechaCreacion = now },
+            new EventCategory { Id = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), Nombre = "Bautismo", FechaCreacion = now },
+            new EventCategory { Id = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), Nombre = "Graduación", FechaCreacion = now },
+            new EventCategory { Id = Guid.Parse("99999999-9999-9999-9999-999999999999"), Nombre = "Baile", FechaCreacion = now }
         };
 
-        modelBuilder.Entity<Tag>().HasData(tags);
+        modelBuilder.Entity<EventCategory>().HasData(categories);
     }
 }

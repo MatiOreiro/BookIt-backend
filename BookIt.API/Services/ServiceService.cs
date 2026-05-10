@@ -75,7 +75,7 @@ public class ServiceService : IServiceService
         return filtered.Select(MapToDto);
     }
 
-    public async Task<IEnumerable<ServiceDto>> FilterByPriceAndTypeAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio)
+    public async Task<IEnumerable<ServiceDto>> FilterByPriceAndTypeAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio, List<Guid>? categoryIds)
     {
         var services = await _serviceRepository.GetActiveAsync();
 
@@ -97,35 +97,10 @@ public class ServiceService : IServiceService
             filtered = filtered.Where(s => s.TipoServicio.ToLowerInvariant() == tipo);
         }
 
-        return filtered.Select(MapToDto);
-    }
-
-    public async Task<IEnumerable<ServiceDto>> FilterByTagsAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio, List<Guid>? tagIds)
-    {
-        var services = await _serviceRepository.GetActiveAsync();
-
-        var filtered = services.AsEnumerable();
-
-        if (minPrice.HasValue)
-        {
-            filtered = filtered.Where(s => s.PrecioMaximo >= minPrice.Value);
-        }
-
-        if (maxPrice.HasValue)
-        {
-            filtered = filtered.Where(s => s.PrecioMinimo <= maxPrice.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(tipoServicio))
-        {
-            var tipo = tipoServicio.ToLowerInvariant();
-            filtered = filtered.Where(s => s.TipoServicio.ToLowerInvariant() == tipo);
-        }
-
-        if (tagIds != null && tagIds.Count > 0)
+        if (categoryIds != null && categoryIds.Count > 0)
         {
             filtered = filtered.Where(s =>
-                s.ServiceTags.Any(st => tagIds.Contains(st.TagId))
+                s.ServiceEventCategories.Any(sc => categoryIds.Contains(sc.EventCategoryId))
             );
         }
 
@@ -152,11 +127,11 @@ public class ServiceService : IServiceService
             Email = service.Vendor.Email,
             Telefono = service.Vendor.Telefono
         },
-        Tags = service.ServiceTags?.Select(st => new TagDto
+        Categorias = service.ServiceEventCategories?.Select(sc => new EventCategoryDto
         {
-            Id = st.Tag!.Id,
-            Nombre = st.Tag.Nombre,
-            FechaCreacion = st.Tag.FechaCreacion
+            Id = sc.EventCategory!.Id,
+            Nombre = sc.EventCategory.Nombre,
+            FechaCreacion = sc.EventCategory.FechaCreacion
         }).ToList() ?? new()
     };
 }

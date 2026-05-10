@@ -18,6 +18,8 @@ public class ServiceRepository : IServiceRepository
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.ServiceEventCategories)
+                .ThenInclude(sc => sc.EventCategory)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -25,6 +27,8 @@ public class ServiceRepository : IServiceRepository
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.ServiceEventCategories)
+                .ThenInclude(sc => sc.EventCategory)
             .FirstOrDefaultAsync(s => s.VendorId == vendorId);
     }
 
@@ -32,6 +36,8 @@ public class ServiceRepository : IServiceRepository
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.ServiceEventCategories)
+                .ThenInclude(sc => sc.EventCategory)
             .ToListAsync();
     }
 
@@ -39,6 +45,8 @@ public class ServiceRepository : IServiceRepository
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.ServiceEventCategories)
+                .ThenInclude(sc => sc.EventCategory)
             .Where(s => s.Activo)
             .ToListAsync();
     }

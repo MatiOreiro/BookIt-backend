@@ -16,5 +16,5 @@ public class Service
 
     // Navigation properties
     public User? Vendor { get; set; }
-    public ICollection<ServiceTag> ServiceTags { get; set; } = new List<ServiceTag>();
+    public ICollection<ServiceEventCategory> ServiceEventCategories { get; set; } = new List<ServiceEventCategory>();
 }

@@ -14,7 +14,7 @@ public class ServiceDto
     public DateTime FechaCreacion { get; set; }
     public DateTime FechaActualizacion { get; set; }
     public VendorDto? Vendor { get; set; }
-    public List<TagDto> Tags { get; set; } = new();
+    public List<EventCategoryDto> Categorias { get; set; } = new();
 }
 
 public class VendorDto

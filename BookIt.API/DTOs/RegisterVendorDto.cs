@@ -57,7 +57,5 @@ public class RegisterVendorDto
     [Range(0.01, 999999.99, ErrorMessage = "El precio máximo debe estar entre 0.01 y 999999.99")]
     public decimal PrecioMaximo { get; set; }
 
-    [Required(ErrorMessage = "Debe seleccionar al menos un tag.")]
-    [MinLength(1, ErrorMessage = "Debe seleccionar al menos un tag.")]
-    public List<Guid> TagIds { get; set; } = new();
+    public List<Guid>? CategoryIds { get; set; }
 }

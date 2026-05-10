@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using BookIt.API.Data;
+using BookIt.API.Models;
 using BookIt.API.Middleware;
 using BookIt.API.Repositories;
 using BookIt.API.Repositories.Interfaces;
@@ -124,6 +125,8 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+await SeedFixedEventCategoriesAsync(app);
+
 // ─── Middleware pipeline ──────────────────────────────────────────────────────
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -137,6 +140,44 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+static async Task SeedFixedEventCategoriesAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    await context.Database.MigrateAsync();
+
+    var fixedCategories = new[]
+    {
+        "Boda",
+        "Cumpleaños de XV",
+        "Cumpleaños",
+        "Evento corporativo",
+        "Bautismo",
+        "Graduación",
+        "Baile"
+    };
+
+    var existingCategories = await context.EventCategories
+        .Select(category => category.Nombre)
+        .ToListAsync();
+
+    var categoriesToAdd = fixedCategories
+        .Where(categoryName => !existingCategories.Contains(categoryName))
+        .Select(categoryName => new EventCategory
+        {
+            Nombre = categoryName,
+            FechaCreacion = DateTime.UtcNow
+        })
+        .ToList();
+
+    if (categoriesToAdd.Count == 0)
+        return;
+
+    context.EventCategories.AddRange(categoriesToAdd);
+    await context.SaveChangesAsync();
+}
 
 void LoadDotEnvIfExists(string envPath)
 {
