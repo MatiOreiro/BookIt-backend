@@ -118,9 +118,12 @@ public class AuthService : IAuthService
             TipoServicio = tipoServicio,
             PrecioMinimo = dto.PrecioMinimo,
             PrecioMaximo = dto.PrecioMaximo,
+            // Guardar campos opcionales si existen
+            Direccion = !string.IsNullOrWhiteSpace(dto.Direccion) ? dto.Direccion.Trim() : null,
+            Capacidad = dto.Capacidad,
             FechaCreacion = DateTime.UtcNow,
-            FechaActualizacion = DateTime.UtcNow
-            ,ServiceEventCategories = (dto.CategoryIds ?? new List<Guid>())
+            FechaActualizacion = DateTime.UtcNow,
+            ServiceEventCategories = (dto.CategoryIds ?? new List<Guid>())
                 .Select(categoryId => new ServiceEventCategory
                 {
                     EventCategoryId = categoryId
@@ -145,7 +148,6 @@ public class AuthService : IAuthService
         }
         catch (DbUpdateException)
         {
-            // Rollback: if service creation fails, we need to delete the user (optionally)
             throw new InvalidOperationException("Error al crear el servicio. Por favor intenta de nuevo.");
         }
 

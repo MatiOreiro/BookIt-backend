@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BookIt.API.Data.Migrations
+namespace BookIt.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260509214549_AddBaileEventCategory")]
-    partial class AddBaileEventCategory
+    [Migration("20260512024657_direccionycapacidad2")]
+    partial class direccionycapacidad2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -100,10 +100,16 @@ namespace BookIt.API.Data.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("Capacidad")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Direccion")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
@@ -157,6 +163,43 @@ namespace BookIt.API.Data.Migrations
                     b.HasIndex("EventCategoryId");
 
                     b.ToTable("ServiceEventCategories");
+                });
+
+            modelBuilder.Entity("BookIt.API.Models.ServiceTag", b =>
+                {
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ServiceId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("ServiceTags");
+                });
+
+            modelBuilder.Entity("BookIt.API.Models.Tag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("BookIt.API.Models.User", b =>
@@ -214,7 +257,7 @@ namespace BookIt.API.Data.Migrations
                             FechaActualizacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaCreacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Admin BookIt",
-                            PasswordHash = "$2a$11$CxPppvjLcYjc01Gf1V8RZu8F.H.3iew.7dDJjY5pm5YaGlPOT/7Li",
+                            PasswordHash = "$2a$11$tRgRf7g55we.KStUgRmj4.6pOO.2545g0o1CrRwPSpgf3LXwsdTTW",
                             Rol = "administrador",
                             Telefono = "000-000-0000"
                         });
@@ -250,6 +293,25 @@ namespace BookIt.API.Data.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("BookIt.API.Models.ServiceTag", b =>
+                {
+                    b.HasOne("BookIt.API.Models.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BookIt.API.Models.Tag", "Tag")
+                        .WithMany("ServiceTags")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+
+                    b.Navigation("Tag");
+                });
+
             modelBuilder.Entity("BookIt.API.Models.EventCategory", b =>
                 {
                     b.Navigation("ServiceEventCategories");
@@ -258,6 +320,11 @@ namespace BookIt.API.Data.Migrations
             modelBuilder.Entity("BookIt.API.Models.Service", b =>
                 {
                     b.Navigation("ServiceEventCategories");
+                });
+
+            modelBuilder.Entity("BookIt.API.Models.Tag", b =>
+                {
+                    b.Navigation("ServiceTags");
                 });
 #pragma warning restore 612, 618
         }

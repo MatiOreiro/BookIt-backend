@@ -10,6 +10,11 @@ public class Service
     public string TipoServicio { get; set; } = string.Empty;
     public decimal PrecioMinimo { get; set; }
     public decimal PrecioMaximo { get; set; }
+    
+    // Campos opcionales para salones
+    public string? Direccion { get; set; }
+    public int? Capacidad { get; set; }
+    
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;

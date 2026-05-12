@@ -3,17 +3,20 @@ using System;
 using BookIt.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BookIt.API.Data.Migrations
+namespace BookIt.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512023449_direccionycapacidad")]
+    partial class direccionycapacidad
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -248,7 +251,7 @@ namespace BookIt.API.Data.Migrations
                             FechaActualizacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaCreacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Admin BookIt",
-                            PasswordHash = "$2a$11$5VqoAO9lir73KtXIbxWNoehOVFRGNg9e0Kmv1KrE.POrzmOWV7Mp.",
+                            PasswordHash = "$2a$11$lcJqc4ZJMu8hYqDjONhilusjrzFgOFl8hQ7XXt559cVT5RBUHzq6O",
                             Rol = "administrador",
                             Telefono = "000-000-0000"
                         });

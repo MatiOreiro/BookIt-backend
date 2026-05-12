@@ -57,5 +57,12 @@ public class RegisterVendorDto
     [Range(0.01, 999999.99, ErrorMessage = "El precio máximo debe estar entre 0.01 y 999999.99")]
     public decimal PrecioMaximo { get; set; }
 
+    // Campos opcionales para salones
+    [MaxLength(300, ErrorMessage = "La dirección no puede exceder 300 caracteres.")]
+    public string? Direccion { get; set; }
+
+    [Range(1, 10000, ErrorMessage = "La capacidad debe estar entre 1 y 10000 personas.")]
+    public int? Capacidad { get; set; }
+
     public List<Guid>? CategoryIds { get; set; }
 }
