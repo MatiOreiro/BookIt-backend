@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookIt.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260512023449_direccionycapacidad")]
-    partial class direccionycapacidad
+    [Migration("20260521063557_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -100,10 +100,16 @@ namespace BookIt.API.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("Capacidad")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Direccion")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
@@ -251,7 +257,7 @@ namespace BookIt.API.Migrations
                             FechaActualizacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaCreacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Admin BookIt",
-                            PasswordHash = "$2a$11$lcJqc4ZJMu8hYqDjONhilusjrzFgOFl8hQ7XXt559cVT5RBUHzq6O",
+                            PasswordHash = "$2a$11$k4btkcarpll1ZVUBBxgebOqvuKnG9qGqqDpH6N2r39.h5Tuvrulrm",
                             Rol = "administrador",
                             Telefono = "000-000-0000"
                         });

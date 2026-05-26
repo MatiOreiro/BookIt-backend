@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BookIt.API.Migrations
 {
     /// <inheritdoc />
-    public partial class migracion1105 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -70,6 +70,8 @@ namespace BookIt.API.Migrations
                     TipoServicio = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     PrecioMinimo = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
                     PrecioMaximo = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
+                    Direccion = table.Column<string>(type: "text", nullable: true),
+                    Capacidad = table.Column<int>(type: "integer", nullable: true),
                     Activo = table.Column<bool>(type: "boolean", nullable: false),
                     FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     FechaActualizacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -150,7 +152,7 @@ namespace BookIt.API.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "Activo", "Email", "FechaActualizacion", "FechaCreacion", "Nombre", "PasswordHash", "Rol", "Telefono" },
-                values: new object[] { new Guid("11111111-1111-1111-1111-111111111111"), true, "admin@bookit.com", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Admin BookIt", "$2a$11$hvFGhy4QQIRDBP.SrqcPleocIYgZsyAbc/xTvy2nxuTpAb7mUy2vG", "administrador", "000-000-0000" });
+                values: new object[] { new Guid("11111111-1111-1111-1111-111111111111"), true, "admin@bookit.com", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Admin BookIt", "$2a$11$k4btkcarpll1ZVUBBxgebOqvuKnG9qGqqDpH6N2r39.h5Tuvrulrm", "administrador", "000-000-0000" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_EventCategories_Nombre",

@@ -1,5 +1,8 @@
 using BookIt.API.DTOs;
 using BookIt.API.Services.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookIt.API.Controllers;
@@ -79,6 +82,74 @@ public class ServicesController : ControllerBase
     }
 
     /// <summary>
+    /// Crea un servicio para el usuario autenticado.
+    /// </summary>
+    [HttpPost]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ServiceDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Create([FromForm] CreateServiceDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var service = await _serviceService.CreateAsync(currentUserId.Value, dto);
+        return CreatedAtAction(nameof(GetById), new { id = service.Id }, service);
+    }
+
+    /// <summary>
+    /// Actualiza un servicio existente del vendedor autenticado.
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ServiceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(Guid id, [FromForm] CreateServiceDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var isAdmin = User.IsInRole("administrador");
+        var service = await _serviceService.UpdateAsync(id, currentUserId.Value, isAdmin, dto);
+        return Ok(service);
+    }
+
+    /// <summary>
+    /// Elimina un servicio. Si era el último del vendedor, el usuario vuelve a rol usuario.
+    /// </summary>
+    [HttpDelete("{id}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var isAdmin = User.IsInRole("administrador");
+        var service = await _serviceService.GetByIdAsync(id);
+        if (service == null)
+            return NotFound(new { message = "Servicio no encontrado" });
+
+        if (!isAdmin && service.VendorId != currentUserId.Value)
+            return Forbid();
+
+        await _serviceService.DeleteAsync(id, currentUserId.Value, isAdmin);
+        return NoContent();
+    }
+
+    /// <summary>
     /// Filtra servicios por precio y tipo de servicio.
     /// </summary>
     [HttpGet("filter")]
@@ -96,5 +167,13 @@ public class ServicesController : ControllerBase
 
         var services = await _serviceService.FilterByPriceAndTypeAsync(minPrice, maxPrice, tipoServicio, categoryIds);
         return Ok(services);
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        var rawUserId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        return Guid.TryParse(rawUserId, out var userId) ? userId : null;
     }
 }

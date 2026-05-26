@@ -18,26 +18,39 @@ public class ServiceRepository : IServiceRepository
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Departamento)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Barrio)
             .Include(s => s.ServiceEventCategories)
                 .ThenInclude(sc => sc.EventCategory)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.User)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
-    public async Task<Service?> GetByVendorIdAsync(Guid vendorId)
+    public async Task<IEnumerable<Service>> GetByVendorIdAsync(Guid vendorId)
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Departamento)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Barrio)
             .Include(s => s.ServiceEventCategories)
                 .ThenInclude(sc => sc.EventCategory)
-            .FirstOrDefaultAsync(s => s.VendorId == vendorId);
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.User)
+            .Where(s => s.VendorId == vendorId)
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<Service>> GetAllAsync()
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Departamento)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Barrio)
             .Include(s => s.ServiceEventCategories)
                 .ThenInclude(sc => sc.EventCategory)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.User)
             .ToListAsync();
     }
 
@@ -45,8 +58,12 @@ public class ServiceRepository : IServiceRepository
     {
         return await _context.Services
             .Include(s => s.Vendor)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Departamento)
+            .Include(s => s.DireccionCompleta).ThenInclude(d => d!.Barrio)
             .Include(s => s.ServiceEventCategories)
                 .ThenInclude(sc => sc.EventCategory)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.User)
             .Where(s => s.Activo)
             .ToListAsync();
     }
@@ -78,5 +95,10 @@ public class ServiceRepository : IServiceRepository
     public async Task<bool> ExistsByIdAsync(Guid id)
     {
         return await _context.Services.AnyAsync(s => s.Id == id);
+    }
+
+    public async Task<int> CountByVendorIdAsync(Guid vendorId)
+    {
+        return await _context.Services.CountAsync(s => s.VendorId == vendorId);
     }
 }

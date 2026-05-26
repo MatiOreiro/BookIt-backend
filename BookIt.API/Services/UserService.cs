@@ -8,10 +8,12 @@ namespace BookIt.API.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IFileStorageService _fileStorageService;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IFileStorageService fileStorageService)
     {
         _userRepository = userRepository;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllAsync()
@@ -44,12 +46,36 @@ public class UserService : IUserService
         await _userRepository.UpdateAsync(user);
     }
 
+    public async Task<UserDto> UpdateProfileImageAsync(Guid userId, UpdateProfileImageDto dto)
+    {
+        if (dto.ProfileImage == null || dto.ProfileImage.Length == 0)
+            throw new ArgumentException("Seleccioná una imagen de perfil.");
+
+        var user = await _userRepository.GetByIdAsync(userId)
+            ?? throw new KeyNotFoundException("El usuario no existe.");
+
+        var previousProfileImage = user.ProfileImageUrl;
+        var newProfileImageUrl = await _fileStorageService.SaveSingleAsync(dto.ProfileImage, "users", $"user-{user.Id}");
+
+        if (!string.IsNullOrWhiteSpace(previousProfileImage))
+        {
+            _fileStorageService.DeleteByUrl(previousProfileImage);
+        }
+
+        user.ProfileImageUrl = newProfileImageUrl;
+        user.FechaActualizacion = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+        return MapToDto(user);
+    }
+
     private static UserDto MapToDto(User user) => new()
     {
         Id = user.Id,
         Nombre = user.Nombre,
         Telefono = user.Telefono,
         Email = user.Email,
+        ProfileImageUrl = user.ProfileImageUrl,
         Rol = user.Rol,
         Activo = user.Activo,
         FechaCreacion = user.FechaCreacion,

@@ -21,10 +21,11 @@ public class AuthController : ControllerBase
     /// Registra un nuevo usuario en el sistema.
     /// </summary>
     [HttpPost("register")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+    public async Task<IActionResult> Register([FromForm] RegisterDto dto)
     {
         var result = await _authService.RegisterAsync(dto);
         return StatusCode(StatusCodes.Status201Created, result);
@@ -34,10 +35,11 @@ public class AuthController : ControllerBase
     /// Registra un nuevo vendedor de servicios en el sistema con su servicio asociado.
     /// </summary>
     [HttpPost("register-vendor")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> RegisterVendor([FromBody] RegisterVendorDto dto)
+    public async Task<IActionResult> RegisterVendor([FromForm] RegisterVendorDto dto)
     {
         var result = await _authService.RegisterVendorAsync(dto);
         return StatusCode(StatusCodes.Status201Created, result);

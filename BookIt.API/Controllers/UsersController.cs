@@ -87,6 +87,25 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Actualiza la imagen de perfil del usuario autenticado.
+    /// </summary>
+    [HttpPut("me/profile-image")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateProfileImage([FromForm] UpdateProfileImageDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var updatedUser = await _userService.UpdateProfileImageAsync(currentUserId.Value, dto);
+        return Ok(updatedUser);
+    }
+
     private bool CanAccessUser(Guid requestedUserId)
     {
         if (User.IsInRole("administrador"))

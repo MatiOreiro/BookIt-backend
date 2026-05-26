@@ -10,9 +10,11 @@ public class Service
     public string TipoServicio { get; set; } = string.Empty;
     public decimal PrecioMinimo { get; set; }
     public decimal PrecioMaximo { get; set; }
+    public Guid? DireccionId { get; set; }
     
     // Campos opcionales para salones
     public string? Direccion { get; set; }
+    public string? ImageUrlsJson { get; set; }
     public int? Capacidad { get; set; }
     
     public bool Activo { get; set; } = true;
@@ -21,5 +23,7 @@ public class Service
 
     // Navigation properties
     public User? Vendor { get; set; }
+    public Direccion? DireccionCompleta { get; set; }
     public ICollection<ServiceEventCategory> ServiceEventCategories { get; set; } = new List<ServiceEventCategory>();
+    public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
 }

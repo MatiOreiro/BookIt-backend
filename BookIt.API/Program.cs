@@ -5,25 +5,25 @@ using BookIt.API.Models;
 using BookIt.API.Middleware;
 using BookIt.API.Repositories;
 using BookIt.API.Repositories.Interfaces;
+using BookIt.API.Infrastructure;
 using BookIt.API.Services;
 using BookIt.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.IsDevelopment())
 {
-    LoadDotEnvIfExists(Path.Combine(builder.Environment.ContentRootPath, ".env"));
+    Bootstrapper.LoadDotEnvIfExists(Path.Combine(builder.Environment.ContentRootPath, ".env"));
     builder.Configuration.AddEnvironmentVariables();
 }
 
 // ─── Database ───────────────────────────────────────────────────────────────
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+var connectionString = await Bootstrapper.ResolveConnectionStringAsync(builder);
 
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("No se encontró la cadena de conexión. Configurá 'ConnectionStrings__DefaultConnection' en variables de entorno o .env.");
@@ -105,7 +105,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+            policy.WithOrigins(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -116,6 +120,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 
 // ─── Services ────────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
@@ -125,12 +130,13 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-await SeedFixedEventCategoriesAsync(app);
+await Bootstrapper.SeedFixedEventCategoriesAsync(app);
 
 // ─── Middleware pipeline ──────────────────────────────────────────────────────
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseCors("Frontend");
 
@@ -140,70 +146,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-static async Task SeedFixedEventCategoriesAsync(WebApplication app)
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    await context.Database.MigrateAsync();
-
-    var fixedCategories = new[]
-    {
-        "Boda",
-        "Cumpleaños de XV",
-        "Cumpleaños",
-        "Evento corporativo",
-        "Bautismo",
-        "Graduación",
-        "Baile"
-    };
-
-    var existingCategories = await context.EventCategories
-        .Select(category => category.Nombre)
-        .ToListAsync();
-
-    var categoriesToAdd = fixedCategories
-        .Where(categoryName => !existingCategories.Contains(categoryName))
-        .Select(categoryName => new EventCategory
-        {
-            Nombre = categoryName,
-            FechaCreacion = DateTime.UtcNow
-        })
-        .ToList();
-
-    if (categoriesToAdd.Count == 0)
-        return;
-
-    context.EventCategories.AddRange(categoriesToAdd);
-    await context.SaveChangesAsync();
-}
-
-void LoadDotEnvIfExists(string envPath)
-{
-    if (!File.Exists(envPath))
-        return;
-
-    foreach (var line in File.ReadAllLines(envPath))
-    {
-        var trimmedLine = line.Trim();
-        if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith('#'))
-            continue;
-
-        var separatorIndex = trimmedLine.IndexOf('=');
-        if (separatorIndex <= 0)
-            continue;
-
-        var key = trimmedLine[..separatorIndex].Trim();
-        var value = trimmedLine[(separatorIndex + 1)..].Trim();
-
-        if (value.StartsWith('"') && value.EndsWith('"') && value.Length >= 2)
-            value = value[1..^1];
-
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(key)))
-            Environment.SetEnvironmentVariable(key, value);
-    }
-}
 
 await app.RunAsync();
 

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace BookIt.API.DTOs;
 
@@ -58,11 +59,14 @@ public class RegisterVendorDto
     public decimal PrecioMaximo { get; set; }
 
     // Campos opcionales para salones
-    [MaxLength(300, ErrorMessage = "La dirección no puede exceder 300 caracteres.")]
-    public string? Direccion { get; set; }
+    [Required(ErrorMessage = "La dirección es obligatoria.")]
+    public DireccionInputDto Direccion { get; set; } = new();
 
     [Range(1, 10000, ErrorMessage = "La capacidad debe estar entre 1 y 10000 personas.")]
     public int? Capacidad { get; set; }
 
     public List<Guid>? CategoryIds { get; set; }
+
+    public IFormFile? ProfileImage { get; set; }
+    public List<IFormFile>? ServiceImages { get; set; }
 }

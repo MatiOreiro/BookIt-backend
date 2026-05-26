@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using BookIt.API.DTOs;
 using BookIt.API.Models;
@@ -16,12 +17,18 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IServiceRepository _serviceRepository;
+    private readonly IFileStorageService _fileStorageService;
     private readonly IConfiguration _configuration;
 
-    public AuthService(IUserRepository userRepository, IServiceRepository serviceRepository, IConfiguration configuration)
+    public AuthService(
+        IUserRepository userRepository,
+        IServiceRepository serviceRepository,
+        IFileStorageService fileStorageService,
+        IConfiguration configuration)
     {
         _userRepository = userRepository;
         _serviceRepository = serviceRepository;
+        _fileStorageService = fileStorageService;
         _configuration = configuration;
     }
 
@@ -49,6 +56,7 @@ public class AuthService : IAuthService
             Email = normalizedEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password, workFactor: 12), // Increase work factor for better security
             Rol = dto.Rol.ToLower(),
+            ProfileImageUrl = await _fileStorageService.SaveSingleAsync(dto.ProfileImage, "users", $"user-{Guid.NewGuid():N}"),
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
         };
@@ -95,6 +103,12 @@ public class AuthService : IAuthService
         var isSalon = string.Equals(tipoServicio, "Salón", StringComparison.OrdinalIgnoreCase)
             || string.Equals(tipoServicio, "Salon", StringComparison.OrdinalIgnoreCase);
 
+        if (dto.Direccion == null || dto.Direccion.DepartamentoId is null || dto.Direccion.BarrioId is null || string.IsNullOrWhiteSpace(dto.Direccion.Calle))
+            throw new ArgumentException("La dirección es obligatoria y debe incluir departamento, barrio y calle.");
+
+        if (isSalon && !dto.Capacidad.HasValue)
+            throw new ArgumentException("La capacidad es obligatoria para los salones.");
+
         if (!isSalon && (dto.CategoryIds == null || dto.CategoryIds.Count == 0))
             throw new ArgumentException("Los servicios que no son Salón deben tener al menos una categoría de evento.");
 
@@ -118,9 +132,14 @@ public class AuthService : IAuthService
             TipoServicio = tipoServicio,
             PrecioMinimo = dto.PrecioMinimo,
             PrecioMaximo = dto.PrecioMaximo,
-            // Guardar campos opcionales si existen
-            Direccion = !string.IsNullOrWhiteSpace(dto.Direccion) ? dto.Direccion.Trim() : null,
             Capacidad = dto.Capacidad,
+            ImageUrlsJson = JsonSerializer.Serialize(await _fileStorageService.SaveManyAsync(dto.ServiceImages, "services", $"service-{Guid.NewGuid():N}")),
+            DireccionCompleta = new Direccion
+            {
+                DepartamentoId = dto.Direccion.DepartamentoId.Value,
+                BarrioId = dto.Direccion.BarrioId.Value,
+                Calle = dto.Direccion.Calle.Trim()
+            },
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow,
             ServiceEventCategories = (dto.CategoryIds ?? new List<Guid>())
@@ -215,6 +234,7 @@ public class AuthService : IAuthService
         Nombre = user.Nombre,
         Telefono = user.Telefono,
         Email = user.Email,
+        ProfileImageUrl = user.ProfileImageUrl,
         Rol = user.Rol,
         Activo = user.Activo,
         FechaCreacion = user.FechaCreacion,
