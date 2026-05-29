@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Barrio> Barrios { get; set; }
     public DbSet<Direccion> Direcciones { get; set; }
     public DbSet<Reserva> Reservas { get; set; }
+    public DbSet<Visita> Visitas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -112,6 +113,28 @@ public class ApplicationDbContext : DbContext
                 .WithMany(u => u.Reservas)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Visita>(entity =>
+        {
+            entity.HasKey(v => v.Id);
+            entity.Property(v => v.Estado).IsRequired().HasMaxLength(30);
+            entity.Property(v => v.Mensaje).HasMaxLength(500);
+            entity.Property(v => v.FechaHoraSolicitada).IsRequired();
+            entity.Property(v => v.FechaCreacion).IsRequired();
+
+            entity.HasOne(v => v.Service)
+                .WithMany(s => s.Visitas)
+                .HasForeignKey(v => v.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(v => v.User)
+                .WithMany(u => u.Visitas)
+                .HasForeignKey(v => v.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(v => new { v.ServiceId, v.FechaHoraSolicitada });
+            entity.HasIndex(v => new { v.ServiceId, v.FechaHoraSolicitada, v.Estado });
         });
 
         modelBuilder.Entity<ServiceEventCategory>(entity =>

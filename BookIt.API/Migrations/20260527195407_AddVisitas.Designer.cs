@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookIt.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260523064208_AddReservasDireccionesYGeografia")]
-    partial class AddReservasDireccionesYGeografia
+    [Migration("20260527195407_AddVisitas")]
+    partial class AddVisitas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -627,6 +627,9 @@ namespace BookIt.API.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ImageUrlsJson")
+                        .HasColumnType("text");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -743,6 +746,10 @@ namespace BookIt.API.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ProfileImageUrl")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
                     b.Property<string>("Rol")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -769,10 +776,51 @@ namespace BookIt.API.Migrations
                             FechaActualizacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaCreacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Admin BookIt",
-                            PasswordHash = "$2a$11$Sew5qqQei5YGbBlMLeoty.Jpf69NJxNouPrMT1PqhiWaIRShs3O2.",
+                            PasswordHash = "$2a$11$x8jcWtZbcmTqQMxiTH0UjuH4LJkX6m1llsRGTjM1c4glzLLBRmWBy",
                             Rol = "administrador",
                             Telefono = "000-000-0000"
                         });
+                });
+
+            modelBuilder.Entity("BookIt.API.Models.Visita", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaHoraSolicitada")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Mensaje")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ServiceId", "FechaHoraSolicitada");
+
+                    b.HasIndex("ServiceId", "FechaHoraSolicitada", "Estado");
+
+                    b.ToTable("Visitas");
                 });
 
             modelBuilder.Entity("BookIt.API.Models.Barrio", b =>
@@ -880,6 +928,25 @@ namespace BookIt.API.Migrations
                     b.Navigation("Tag");
                 });
 
+            modelBuilder.Entity("BookIt.API.Models.Visita", b =>
+                {
+                    b.HasOne("BookIt.API.Models.Service", "Service")
+                        .WithMany("Visitas")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BookIt.API.Models.User", "User")
+                        .WithMany("Visitas")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BookIt.API.Models.Barrio", b =>
                 {
                     b.Navigation("Direcciones");
@@ -905,6 +972,8 @@ namespace BookIt.API.Migrations
                     b.Navigation("Reservas");
 
                     b.Navigation("ServiceEventCategories");
+
+                    b.Navigation("Visitas");
                 });
 
             modelBuilder.Entity("BookIt.API.Models.Tag", b =>
@@ -915,6 +984,8 @@ namespace BookIt.API.Migrations
             modelBuilder.Entity("BookIt.API.Models.User", b =>
                 {
                     b.Navigation("Reservas");
+
+                    b.Navigation("Visitas");
                 });
 #pragma warning restore 612, 618
         }

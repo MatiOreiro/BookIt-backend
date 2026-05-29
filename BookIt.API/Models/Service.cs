@@ -26,4 +26,5 @@ public class Service
     public Direccion? DireccionCompleta { get; set; }
     public ICollection<ServiceEventCategory> ServiceEventCategories { get; set; } = new List<ServiceEventCategory>();
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
+    public ICollection<Visita> Visitas { get; set; } = new List<Visita>();
 }

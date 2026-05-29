@@ -14,4 +14,5 @@ public class User
     public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;
 
     public ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
+    public ICollection<Visita> Visitas { get; set; } = new List<Visita>();
 }

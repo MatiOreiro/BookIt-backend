@@ -24,6 +24,8 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(sc => sc.EventCategory)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.User)
+            .Include(s => s.Visitas)
+                .ThenInclude(v => v.User)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -37,6 +39,8 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(sc => sc.EventCategory)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.User)
+            .Include(s => s.Visitas)
+                .ThenInclude(v => v.User)
             .Where(s => s.VendorId == vendorId)
             .ToListAsync();
     }
@@ -51,6 +55,8 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(sc => sc.EventCategory)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.User)
+            .Include(s => s.Visitas)
+                .ThenInclude(v => v.User)
             .ToListAsync();
     }
 
@@ -64,6 +70,8 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(sc => sc.EventCategory)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.User)
+            .Include(s => s.Visitas)
+                .ThenInclude(v => v.User)
             .Where(s => s.Activo)
             .ToListAsync();
     }
