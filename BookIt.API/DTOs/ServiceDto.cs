@@ -18,6 +18,7 @@ public class ServiceDto
     public DireccionDto? Direccion { get; set; }
     public List<EventCategoryDto> Categorias { get; set; } = new();
     public List<ReservaDto> Reservas { get; set; } = new();
+    public List<VisitaDto> Visitas { get; set; } = new();
     public List<string> Imagenes { get; set; } = new();
 }
 

@@ -91,12 +91,11 @@ public class UsersController : ControllerBase
     /// Actualiza la imagen de perfil del usuario autenticado.
     /// </summary>
     [HttpPut("me/profile-image")]
-    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateProfileImage([FromForm] UpdateProfileImageDto dto)
+    public async Task<IActionResult> UpdateProfileImage([FromBody] UpdateProfileImageDto dto)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)

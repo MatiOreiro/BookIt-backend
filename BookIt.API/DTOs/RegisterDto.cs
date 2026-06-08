@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http;
 
 namespace BookIt.API.DTOs;
 
@@ -33,5 +31,5 @@ public class RegisterDto
     [RegularExpression(@"^[a-z_]+$", ErrorMessage = "El rol solo puede contener letras minúsculas y guiones bajos.")]
     public string Rol { get; set; } = "usuario";
 
-    public IFormFile? ProfileImage { get; set; }
+    public string? ProfileImageUrl { get; set; }
 }

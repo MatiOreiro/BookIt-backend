@@ -86,11 +86,10 @@ public class ServicesController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize]
-    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ServiceDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Create([FromForm] CreateServiceDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateServiceDto dto)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
@@ -105,13 +104,12 @@ public class ServicesController : ControllerBase
     /// </summary>
     [HttpPut("{id}")]
     [Authorize]
-    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ServiceDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromForm] CreateServiceDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromBody] CreateServiceDto dto)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)

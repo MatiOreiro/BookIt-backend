@@ -12,18 +12,15 @@ public class ServiceService : IServiceService
 {
     private readonly IServiceRepository _serviceRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IFileStorageService _fileStorageService;
     private readonly ApplicationDbContext _context;
 
     public ServiceService(
         IServiceRepository serviceRepository,
         IUserRepository userRepository,
-        IFileStorageService fileStorageService,
         ApplicationDbContext context)
     {
         _serviceRepository = serviceRepository;
         _userRepository = userRepository;
-        _fileStorageService = fileStorageService;
         _context = context;
     }
 
@@ -72,7 +69,7 @@ public class ServiceService : IServiceService
             DireccionCompleta = BuildDireccion(normalized),
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow,
-            ImageUrlsJson = await BuildImageUrlsJsonAsync(dto.Images, $"service-{Guid.NewGuid():N}"),
+            ImageUrlsJson = BuildImageUrlsJson(dto.Images),
             ServiceEventCategories = (dto.CategoryIds ?? new List<Guid>())
                 .Select(categoryId => new ServiceEventCategory
                 {
@@ -117,10 +114,9 @@ public class ServiceService : IServiceService
         service.Capacidad = normalized.Capacidad;
         service.FechaActualizacion = DateTime.UtcNow;
 
-        if (dto.Images != null && dto.Images.Count > 0)
+        if (dto.Images != null)
         {
-            _fileStorageService.DeleteMany(GetImageUrls(service.ImageUrlsJson));
-            service.ImageUrlsJson = await BuildImageUrlsJsonAsync(dto.Images, $"service-{service.Id:N}");
+            service.ImageUrlsJson = BuildImageUrlsJson(dto.Images);
         }
 
         if (service.DireccionCompleta == null)
@@ -159,8 +155,6 @@ public class ServiceService : IServiceService
 
         if (!isAdmin && service.VendorId != currentUserId)
             throw new UnauthorizedAccessException("No tenés permiso para borrar este servicio.");
-
-        _fileStorageService.DeleteMany(GetImageUrls(service.ImageUrlsJson));
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -327,7 +321,14 @@ public class ServiceService : IServiceService
             Nombre = sc.EventCategory.Nombre,
             FechaCreacion = sc.EventCategory.FechaCreacion
         }).ToList() ?? new(),
-        Reservas = service.Reservas?.Select(reserva => new ReservaDto
+        Reservas = BuildReservationDtos(service),
+        Visitas = BuildVisitaDtos(service),
+        Imagenes = GetImageUrls(service.ImageUrlsJson)
+    };
+
+    private static List<ReservaDto> BuildReservationDtos(Service service)
+    {
+        return service.Reservas?.Select(reserva => new ReservaDto
         {
             Id = reserva.Id,
             ServiceId = reserva.ServiceId,
@@ -345,14 +346,47 @@ public class ServiceService : IServiceService
                 FechaCreacion = reserva.User.FechaCreacion,
                 FechaActualizacion = reserva.User.FechaActualizacion
             }
-        }).ToList() ?? new()
-        , Imagenes = GetImageUrls(service.ImageUrlsJson)
-    };
+        }).OrderBy(reserva => reserva.FechaReservaCliente).ToList() ?? new List<ReservaDto>();
+    }
 
-    private async Task<string?> BuildImageUrlsJsonAsync(IEnumerable<IFormFile>? images, string filePrefix)
+    private static List<VisitaDto> BuildVisitaDtos(Service service)
     {
-        var savedUrls = await _fileStorageService.SaveManyAsync(images, "services", filePrefix);
-        return savedUrls.Count == 0 ? null : JsonSerializer.Serialize(savedUrls);
+        return service.Visitas?.Select(visita => new VisitaDto
+        {
+            Id = visita.Id,
+            ServiceId = visita.ServiceId,
+            ServiceNombre = service.Nombre,
+            UserId = visita.UserId,
+            UserNombre = visita.User?.Nombre,
+            FechaHoraSolicitada = visita.FechaHoraSolicitada,
+            Estado = visita.Estado,
+            Mensaje = visita.Mensaje,
+            FechaCreacion = visita.FechaCreacion
+        }).OrderBy(visita => visita.FechaHoraSolicitada).ToList() ?? new List<VisitaDto>();
+    }
+
+    private static string? BuildImageUrlsJson(IEnumerable<string>? images)
+    {
+        var normalizedUrls = NormalizeImageUrls(images);
+        return normalizedUrls.Count == 0 ? null : JsonSerializer.Serialize(normalizedUrls);
+    }
+
+    private static List<string> NormalizeImageUrls(IEnumerable<string>? images)
+    {
+        var normalizedUrls = new List<string>();
+
+        foreach (var imageUrl in images ?? Enumerable.Empty<string>())
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+                continue;
+
+            if (!Uri.TryCreate(imageUrl.Trim(), UriKind.Absolute, out var parsedUri))
+                throw new ArgumentException("Cada imagen debe ser una URL absoluta válida de Cloudinary.");
+
+            normalizedUrls.Add(parsedUri.ToString());
+        }
+
+        return normalizedUrls;
     }
 
     private static List<string> GetImageUrls(string? imageUrlsJson)

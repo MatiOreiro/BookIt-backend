@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
 
 namespace BookIt.API.DTOs;
 
@@ -67,6 +66,6 @@ public class RegisterVendorDto
 
     public List<Guid>? CategoryIds { get; set; }
 
-    public IFormFile? ProfileImage { get; set; }
-    public List<IFormFile>? ServiceImages { get; set; }
+    public string? ProfileImageUrl { get; set; }
+    public List<string>? ServiceImageUrls { get; set; }
 }

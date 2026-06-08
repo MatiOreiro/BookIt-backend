@@ -8,12 +8,10 @@ namespace BookIt.API.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IFileStorageService _fileStorageService;
 
-    public UserService(IUserRepository userRepository, IFileStorageService fileStorageService)
+    public UserService(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-        _fileStorageService = fileStorageService;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllAsync()
@@ -48,19 +46,10 @@ public class UserService : IUserService
 
     public async Task<UserDto> UpdateProfileImageAsync(Guid userId, UpdateProfileImageDto dto)
     {
-        if (dto.ProfileImage == null || dto.ProfileImage.Length == 0)
-            throw new ArgumentException("Seleccioná una imagen de perfil.");
+        var newProfileImageUrl = NormalizeImageUrl(dto.ProfileImageUrl);
 
         var user = await _userRepository.GetByIdAsync(userId)
             ?? throw new KeyNotFoundException("El usuario no existe.");
-
-        var previousProfileImage = user.ProfileImageUrl;
-        var newProfileImageUrl = await _fileStorageService.SaveSingleAsync(dto.ProfileImage, "users", $"user-{user.Id}");
-
-        if (!string.IsNullOrWhiteSpace(previousProfileImage))
-        {
-            _fileStorageService.DeleteByUrl(previousProfileImage);
-        }
 
         user.ProfileImageUrl = newProfileImageUrl;
         user.FechaActualizacion = DateTime.UtcNow;
@@ -81,5 +70,15 @@ public class UserService : IUserService
         FechaCreacion = user.FechaCreacion,
         FechaActualizacion = user.FechaActualizacion
     };
+
+    private static string? NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return null;
+
+        return Uri.TryCreate(imageUrl.Trim(), UriKind.Absolute, out var parsedUri)
+            ? parsedUri.ToString()
+            : throw new ArgumentException("La imagen debe ser una URL absoluta válida de Cloudinary.");
+    }
 }
 

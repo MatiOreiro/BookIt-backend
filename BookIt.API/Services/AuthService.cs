@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using BookIt.API.DTOs;
 using BookIt.API.Models;
@@ -17,18 +16,15 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IServiceRepository _serviceRepository;
-    private readonly IFileStorageService _fileStorageService;
     private readonly IConfiguration _configuration;
 
     public AuthService(
         IUserRepository userRepository,
         IServiceRepository serviceRepository,
-        IFileStorageService fileStorageService,
         IConfiguration configuration)
     {
         _userRepository = userRepository;
         _serviceRepository = serviceRepository;
-        _fileStorageService = fileStorageService;
         _configuration = configuration;
     }
 
@@ -56,7 +52,7 @@ public class AuthService : IAuthService
             Email = normalizedEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password, workFactor: 12), // Increase work factor for better security
             Rol = dto.Rol.ToLower(),
-            ProfileImageUrl = await _fileStorageService.SaveSingleAsync(dto.ProfileImage, "users", $"user-{Guid.NewGuid():N}"),
+            ProfileImageUrl = NormalizeImageUrl(dto.ProfileImageUrl),
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
         };
@@ -133,7 +129,7 @@ public class AuthService : IAuthService
             PrecioMinimo = dto.PrecioMinimo,
             PrecioMaximo = dto.PrecioMaximo,
             Capacidad = dto.Capacidad,
-            ImageUrlsJson = JsonSerializer.Serialize(await _fileStorageService.SaveManyAsync(dto.ServiceImages, "services", $"service-{Guid.NewGuid():N}")),
+            ImageUrlsJson = SerializeImageUrls(dto.ServiceImageUrls),
             DireccionCompleta = new Direccion
             {
                 DepartamentoId = dto.Direccion.DepartamentoId.Value,
@@ -255,5 +251,39 @@ public class AuthService : IAuthService
         {
             return false;
         }
+    }
+
+    private static string? NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return null;
+
+        return Uri.TryCreate(imageUrl.Trim(), UriKind.Absolute, out var parsedUri)
+            ? parsedUri.ToString()
+            : throw new ArgumentException("La imagen debe ser una URL absoluta válida de Cloudinary.");
+    }
+
+    private static string? SerializeImageUrls(IEnumerable<string>? imageUrls)
+    {
+        var normalizedUrls = NormalizeImageUrls(imageUrls);
+        return normalizedUrls.Count == 0 ? null : System.Text.Json.JsonSerializer.Serialize(normalizedUrls);
+    }
+
+    private static List<string> NormalizeImageUrls(IEnumerable<string>? imageUrls)
+    {
+        var normalizedUrls = new List<string>();
+
+        foreach (var imageUrl in imageUrls ?? Enumerable.Empty<string>())
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+                continue;
+
+            if (!Uri.TryCreate(imageUrl.Trim(), UriKind.Absolute, out var parsedUri))
+                throw new ArgumentException("Cada imagen debe ser una URL absoluta válida de Cloudinary.");
+
+            normalizedUrls.Add(parsedUri.ToString());
+        }
+
+        return normalizedUrls;
     }
 }

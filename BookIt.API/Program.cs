@@ -109,7 +109,9 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "http://localhost:3000",
-                "http://127.0.0.1:3000")
+                "http://127.0.0.1:3000",
+                "http://localhost:3001",
+                "http://127.0.0.1:3001")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -119,13 +121,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IVisitaRepository, VisitaRepository>();
+builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 
 // ─── Services ────────────────────────────────────────────────────────────────
-builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IVisitaService, VisitaService>();
+builder.Services.AddScoped<IReservaService, ReservaService>();
 
 // ─── Controllers ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();

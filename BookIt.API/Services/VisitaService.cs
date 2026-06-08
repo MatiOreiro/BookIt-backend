@@ -1,7 +1,9 @@
+using BookIt.API.Data;
 using BookIt.API.DTOs;
 using BookIt.API.Models;
 using BookIt.API.Repositories.Interfaces;
 using BookIt.API.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookIt.API.Services;
 
@@ -9,20 +11,20 @@ public class VisitaService : IVisitaService
 {
     private readonly IVisitaRepository _visitaRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ApplicationDbContext _context;
 
-    public VisitaService(IVisitaRepository visitaRepository, IUserRepository userRepository)
+    public VisitaService(IVisitaRepository visitaRepository, IUserRepository userRepository, ApplicationDbContext context)
     {
         _visitaRepository = visitaRepository;
         _userRepository = userRepository;
+        _context = context;
     }
 
     public async Task<VisitaDto> CreateAsync(Guid currentUserId, CreateVisitaDto dto)
     {
-        var fechaUtc = dto.FechaHoraSolicitada.Kind == DateTimeKind.Utc
-            ? dto.FechaHoraSolicitada
-            : dto.FechaHoraSolicitada.ToUniversalTime();
+        var fechaSlot = NormalizeToHalfHourSlot(dto.FechaHoraSolicitada);
 
-        if (fechaUtc <= DateTime.UtcNow)
+        if (fechaSlot <= DateTime.UtcNow)
             throw new ArgumentException("La fecha y hora solicitadas deben ser futuras.");
 
         if (!string.IsNullOrWhiteSpace(dto.Mensaje) && dto.Mensaje.Length > 500)
@@ -37,15 +39,13 @@ public class VisitaService : IVisitaService
         if (!service.Activo)
             throw new ArgumentException("El servicio no está activo.");
 
-        var hasDuplicate = await _visitaRepository.ExistsPendingOrConfirmedAsync(dto.ServiceId, fechaUtc);
-        if (hasDuplicate)
-            throw new ArgumentException("Ya existe una visita pendiente o confirmada para ese horario.");
+        await EnsureSlotAvailableAsync(service.Id, fechaSlot);
 
         var visita = new Visita
         {
             ServiceId = service.Id,
             UserId = currentUserId,
-            FechaHoraSolicitada = fechaUtc,
+            FechaHoraSolicitada = fechaSlot,
             Estado = "Pendiente",
             Mensaje = string.IsNullOrWhiteSpace(dto.Mensaje) ? null : dto.Mensaje.Trim(),
             FechaCreacion = DateTime.UtcNow,
@@ -75,6 +75,66 @@ public class VisitaService : IVisitaService
 
         var visitas = await _visitaRepository.GetByServiceIdAsync(serviceId);
         return visitas.Select(MapToDto);
+    }
+
+    public async Task<VisitaDto> UpdateEstadoAsync(Guid currentUserId, bool isAdmin, Guid visitaId, string estado)
+    {
+        var visita = await _context.Visitas
+            .Include(v => v.Service)
+            .Include(v => v.User)
+            .FirstOrDefaultAsync(v => v.Id == visitaId)
+            ?? throw new KeyNotFoundException("Visita no encontrada.");
+
+        if (!isAdmin && visita.Service?.VendorId != currentUserId)
+            throw new UnauthorizedAccessException("No tenés permiso para actualizar esta visita.");
+
+        if (string.Equals(estado, "Confirmada", StringComparison.OrdinalIgnoreCase)
+            && visita.FechaHoraSolicitada > DateTime.UtcNow)
+        {
+            throw new ArgumentException("La visita solo se puede marcar como cumplida cuando ya pasó su fecha y hora.");
+        }
+
+        visita.Estado = estado;
+        visita.FechaActualizacion = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return MapToDto(visita);
+    }
+
+    public async Task DeleteAsync(Guid currentUserId, bool isAdmin, Guid visitaId)
+    {
+        var visita = await _context.Visitas
+            .Include(v => v.Service)
+            .FirstOrDefaultAsync(v => v.Id == visitaId)
+            ?? throw new KeyNotFoundException("Visita no encontrada.");
+
+        if (!isAdmin && visita.Service?.VendorId != currentUserId)
+            throw new UnauthorizedAccessException("No tenés permiso para eliminar esta visita.");
+
+        _context.Visitas.Remove(visita);
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task EnsureSlotAvailableAsync(Guid serviceId, DateTime slot)
+    {
+        var hasVisit = await _context.Visitas.AnyAsync(v =>
+            v.ServiceId == serviceId &&
+            v.FechaHoraSolicitada == slot &&
+            (v.Estado == "Pendiente" || v.Estado == "Confirmada"));
+
+        var hasReservation = await _context.Reservas.AnyAsync(r =>
+            r.ServiceId == serviceId &&
+            r.FechaReservaCliente == slot);
+
+        if (hasVisit || hasReservation)
+            throw new ArgumentException("Ya existe una visita o reserva para ese horario.");
+    }
+
+    private static DateTime NormalizeToHalfHourSlot(DateTime value)
+    {
+        var utcValue = value.Kind == DateTimeKind.Utc ? value : value.ToUniversalTime();
+        var normalizedMinute = utcValue.Minute < 30 ? 0 : 30;
+        return new DateTime(utcValue.Year, utcValue.Month, utcValue.Day, utcValue.Hour, normalizedMinute, 0, DateTimeKind.Utc);
     }
 
     private static VisitaDto MapToDto(Visita visita) => new()

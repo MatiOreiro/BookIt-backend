@@ -12,10 +12,12 @@ namespace BookIt.API.Controllers;
 public class VisitasController : ControllerBase
 {
     private readonly IVisitaService _visitaService;
+    private readonly IReservaService _reservaService;
 
-    public VisitasController(IVisitaService visitaService)
+    public VisitasController(IVisitaService visitaService, IReservaService reservaService)
     {
         _visitaService = visitaService;
+        _reservaService = reservaService;
     }
 
     /// <summary>
@@ -72,6 +74,41 @@ public class VisitasController : ControllerBase
         var isAdmin = User.IsInRole("administrador");
         var visitas = await _visitaService.GetByServiceIdAsync(currentUserId.Value, isAdmin, serviceId);
         return Ok(visitas);
+    }
+
+    [HttpPost("{visitaId}/confirmar")]
+    [Authorize]
+    [ProducesResponseType(typeof(VisitaDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ReservaDto), StatusCodes.Status201Created)]
+    public async Task<IActionResult> Confirmar(Guid visitaId, [FromBody] ConfirmarVisitaDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var isAdmin = User.IsInRole("administrador");
+        if (dto.CrearReserva)
+        {
+            var reserva = await _reservaService.CreateFromVisitaAsync(currentUserId.Value, isAdmin, visitaId);
+            return StatusCode(StatusCodes.Status201Created, reserva);
+        }
+
+        var visita = await _visitaService.UpdateEstadoAsync(currentUserId.Value, isAdmin, visitaId, "Confirmada");
+        return Ok(visita);
+    }
+
+    [HttpDelete("{visitaId}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Delete(Guid visitaId)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var isAdmin = User.IsInRole("administrador");
+        await _visitaService.DeleteAsync(currentUserId.Value, isAdmin, visitaId);
+        return NoContent();
     }
 
     private Guid? GetCurrentUserId()
