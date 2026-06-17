@@ -40,7 +40,7 @@ public class PagoService : IPagoService
             Importe = dto.Importe,
             FechaPago = dto.FechaPago.Kind == DateTimeKind.Utc
                 ? dto.FechaPago
-                : dto.FechaPago.ToUniversalTime()
+                : DateTime.SpecifyKind(dto.FechaPago, DateTimeKind.Utc)
         };
 
         _context.Pagos.Add(pago);
@@ -60,6 +60,9 @@ public class PagoService : IPagoService
         if (!isAdmin && pago.Reserva?.Service?.VendorId != currentUserId)
             throw new UnauthorizedAccessException("No tenés permiso para editar este pago.");
 
+        if (pago.Reserva?.Confirmada != true)
+            throw new ArgumentException("Solo se pueden editar pagos en reservas confirmadas.");
+
         if (!TiposPagoValidos.Contains(dto.TipoPago))
             throw new ArgumentException("El tipo de pago debe ser Seña, Parcial o Total.");
 
@@ -67,7 +70,7 @@ public class PagoService : IPagoService
         pago.Importe = dto.Importe;
         pago.FechaPago = dto.FechaPago.Kind == DateTimeKind.Utc
             ? dto.FechaPago
-            : dto.FechaPago.ToUniversalTime();
+            : DateTime.SpecifyKind(dto.FechaPago, DateTimeKind.Utc);
         pago.FechaActualizacion = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
