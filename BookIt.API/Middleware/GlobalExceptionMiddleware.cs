@@ -34,7 +34,7 @@ public class GlobalExceptionMiddleware
         var (statusCode, message) = exception switch
         {
             InvalidOperationException => (HttpStatusCode.Conflict, exception.Message),
-            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, exception.Message),
+            UnauthorizedAccessException => (HttpStatusCode.Forbidden, exception.Message),
             ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
             KeyNotFoundException => (HttpStatusCode.NotFound, exception.Message),
             _ => (HttpStatusCode.InternalServerError, "Ocurrió un error interno en el servidor.")

@@ -97,7 +97,7 @@ public class ReservaService : IReservaService
 
         var slot = NormalizeToHalfHourSlot(visita.FechaHoraSolicitada);
 
-        await EnsureSlotNotInConfirmedRangeAsync(visita.ServiceId, slot);
+        await EnsureSlotNotInConfirmedRangeAsync(visita.ServiceId, slot, visita.Id);
 
         var hasOtherVisit = await _context.Visitas.AnyAsync(v =>
             v.ServiceId == visita.ServiceId &&
@@ -138,6 +138,9 @@ public class ReservaService : IReservaService
 
         if (!isAdmin && reserva.Service?.VendorId != currentUserId)
             throw new UnauthorizedAccessException("No tenés permiso para confirmar esta reserva.");
+
+        if (reserva.Confirmada)
+            throw new InvalidOperationException("La reserva ya está confirmada. Usá el endpoint de actualización financiera.");
 
         await EnsureRangeAvailableAsync(reserva.ServiceId, reservaId, reserva.FechaReservaCliente, dto.HorasReservadas);
 
@@ -189,12 +192,13 @@ public class ReservaService : IReservaService
 
     // Checks that the given slot does not fall inside any confirmed reservation's time range.
     // Reservations without HorasReservadas block only their exact 30-min start slot.
-    private async Task EnsureSlotNotInConfirmedRangeAsync(Guid serviceId, DateTime slot)
+    private async Task EnsureSlotNotInConfirmedRangeAsync(Guid serviceId, DateTime slot, Guid? excludeVisitaId = null)
     {
         var hasVisita = await _context.Visitas.AnyAsync(v =>
             v.ServiceId == serviceId &&
             v.FechaHoraSolicitada == slot &&
-            (v.Estado == "Pendiente" || v.Estado == "Confirmada"));
+            (v.Estado == "Pendiente" || v.Estado == "Confirmada") &&
+            (excludeVisitaId == null || v.Id != excludeVisitaId));
 
         if (hasVisita)
             throw new ArgumentException("Ya existe una visita o reserva para ese horario.");
