@@ -34,6 +34,7 @@ public class ReservaRepository : IReservaRepository
         return await _context.Reservas
             .Include(r => r.Service)
             .Include(r => r.User)
+            .Include(r => r.Pagos)
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.FechaReservaCliente)
             .ToListAsync();
@@ -44,6 +45,7 @@ public class ReservaRepository : IReservaRepository
         return await _context.Reservas
             .Include(r => r.Service)
             .Include(r => r.User)
+            .Include(r => r.Pagos)
             .Where(r => r.ServiceId == serviceId)
             .OrderByDescending(r => r.FechaReservaCliente)
             .ToListAsync();
