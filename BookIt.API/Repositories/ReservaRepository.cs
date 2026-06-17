@@ -26,6 +26,7 @@ public class ReservaRepository : IReservaRepository
         return await _context.Reservas
             .Include(r => r.Service)
             .Include(r => r.User)
+            .Include(r => r.Pagos)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 

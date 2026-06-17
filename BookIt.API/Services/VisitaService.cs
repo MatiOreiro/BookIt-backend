@@ -125,6 +125,14 @@ public class VisitaService : IVisitaService
         if (hasVisit)
             throw new ArgumentException("Ya existe una visita o reserva para ese horario.");
 
+        var hasUnconfirmedReserva = await _context.Reservas.AnyAsync(r =>
+            r.ServiceId == serviceId &&
+            r.FechaReservaCliente == slot &&
+            !r.Confirmada);
+
+        if (hasUnconfirmedReserva)
+            throw new ArgumentException("Ya existe una reserva pendiente para ese horario.");
+
         var confirmedReservas = await _context.Reservas
             .Where(r => r.ServiceId == serviceId && r.Confirmada)
             .Select(r => new { r.FechaReservaCliente, r.HorasReservadas })
