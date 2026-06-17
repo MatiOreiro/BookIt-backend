@@ -122,12 +122,24 @@ public class VisitaService : IVisitaService
             v.FechaHoraSolicitada == slot &&
             (v.Estado == "Pendiente" || v.Estado == "Confirmada"));
 
-        var hasReservation = await _context.Reservas.AnyAsync(r =>
-            r.ServiceId == serviceId &&
-            r.FechaReservaCliente == slot);
-
-        if (hasVisit || hasReservation)
+        if (hasVisit)
             throw new ArgumentException("Ya existe una visita o reserva para ese horario.");
+
+        var confirmedReservas = await _context.Reservas
+            .Where(r => r.ServiceId == serviceId && r.Confirmada)
+            .Select(r => new { r.FechaReservaCliente, r.HorasReservadas })
+            .ToListAsync();
+
+        var overlaps = confirmedReservas.Any(r =>
+        {
+            var end = r.HorasReservadas.HasValue
+                ? r.FechaReservaCliente.AddHours((double)r.HorasReservadas.Value)
+                : r.FechaReservaCliente.AddMinutes(30);
+            return slot >= r.FechaReservaCliente && slot < end;
+        });
+
+        if (overlaps)
+            throw new ArgumentException("El horario solicitado se solapa con una reserva confirmada.");
     }
 
     private static DateTime NormalizeToHalfHourSlot(DateTime value)
@@ -144,6 +156,7 @@ public class VisitaService : IVisitaService
         ServiceNombre = visita.Service?.Nombre,
         UserId = visita.UserId,
         UserNombre = visita.User?.Nombre,
+        UserEmail = visita.User?.Email,
         FechaHoraSolicitada = visita.FechaHoraSolicitada,
         Estado = visita.Estado,
         Mensaje = visita.Mensaje,
