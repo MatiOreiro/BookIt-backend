@@ -76,14 +76,28 @@ public class ReservasController : ControllerBase
     [HttpPost("{reservaId}/confirmar")]
     [Authorize]
     [ProducesResponseType(typeof(ReservaDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Confirm(Guid reservaId)
+    public async Task<IActionResult> Confirm(Guid reservaId, [FromBody] ConfirmarReservaDto dto)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
             return Unauthorized();
 
         var isAdmin = User.IsInRole(AdminRole);
-        var reserva = await _reservaService.ConfirmAsync(currentUserId.Value, isAdmin, reservaId);
+        var reserva = await _reservaService.ConfirmAsync(currentUserId.Value, isAdmin, reservaId, dto);
+        return Ok(reserva);
+    }
+
+    [HttpPut("{reservaId}/financiero")]
+    [Authorize]
+    [ProducesResponseType(typeof(ReservaDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateFinanciero(Guid reservaId, [FromBody] ConfirmarReservaDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var isAdmin = User.IsInRole(AdminRole);
+        var reserva = await _reservaService.UpdateFinancieroAsync(currentUserId.Value, isAdmin, reservaId, dto);
         return Ok(reserva);
     }
 

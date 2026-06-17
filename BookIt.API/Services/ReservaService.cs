@@ -1,3 +1,4 @@
+// BookIt-backend/BookIt.API/Services/ReservaService.cs
 using BookIt.API.Data;
 using BookIt.API.DTOs;
 using BookIt.API.Models;
@@ -45,7 +46,7 @@ public class ReservaService : IReservaService
         if (!service.Activo)
             throw new ArgumentException("El servicio no está activo.");
 
-        await EnsureSlotAvailableAsync(service.Id, fechaSlot);
+        await EnsureSlotNotInConfirmedRangeAsync(service.Id, fechaSlot);
 
         var reserva = new Reserva
         {
@@ -95,9 +96,8 @@ public class ReservaService : IReservaService
             throw new ArgumentException("La visita ya fue procesada.");
 
         var slot = NormalizeToHalfHourSlot(visita.FechaHoraSolicitada);
-        var hasOtherReservation = await _context.Reservas.AnyAsync(r =>
-            r.ServiceId == visita.ServiceId &&
-            r.FechaReservaCliente == slot);
+
+        await EnsureSlotNotInConfirmedRangeAsync(visita.ServiceId, slot);
 
         var hasOtherVisit = await _context.Visitas.AnyAsync(v =>
             v.ServiceId == visita.ServiceId &&
@@ -105,8 +105,8 @@ public class ReservaService : IReservaService
             v.Id != visitaId &&
             (v.Estado == "Pendiente" || v.Estado == "Confirmada"));
 
-        if (hasOtherReservation || hasOtherVisit)
-            throw new ArgumentException("Ya existe una visita o reserva para ese horario.");
+        if (hasOtherVisit)
+            throw new ArgumentException("Ya existe una visita para ese horario.");
 
         var reserva = new Reserva
         {
@@ -127,18 +127,47 @@ public class ReservaService : IReservaService
         return MapToDto(created);
     }
 
-    public async Task<ReservaDto> ConfirmAsync(Guid currentUserId, bool isAdmin, Guid reservaId)
+    public async Task<ReservaDto> ConfirmAsync(Guid currentUserId, bool isAdmin, Guid reservaId, ConfirmarReservaDto dto)
     {
         var reserva = await _context.Reservas
             .Include(r => r.Service)
             .Include(r => r.User)
+            .Include(r => r.Pagos)
             .FirstOrDefaultAsync(r => r.Id == reservaId)
             ?? throw new KeyNotFoundException("Reserva no encontrada.");
 
         if (!isAdmin && reserva.Service?.VendorId != currentUserId)
             throw new UnauthorizedAccessException("No tenés permiso para confirmar esta reserva.");
 
+        await EnsureRangeAvailableAsync(reserva.ServiceId, reservaId, reserva.FechaReservaCliente, dto.HorasReservadas);
+
         reserva.Confirmada = true;
+        reserva.HorasReservadas = dto.HorasReservadas;
+        reserva.MontoAcordado = dto.MontoAcordado;
+        await _context.SaveChangesAsync();
+
+        return MapToDto(reserva);
+    }
+
+    public async Task<ReservaDto> UpdateFinancieroAsync(Guid currentUserId, bool isAdmin, Guid reservaId, ConfirmarReservaDto dto)
+    {
+        var reserva = await _context.Reservas
+            .Include(r => r.Service)
+            .Include(r => r.User)
+            .Include(r => r.Pagos)
+            .FirstOrDefaultAsync(r => r.Id == reservaId)
+            ?? throw new KeyNotFoundException("Reserva no encontrada.");
+
+        if (!isAdmin && reserva.Service?.VendorId != currentUserId)
+            throw new UnauthorizedAccessException("No tenés permiso para actualizar esta reserva.");
+
+        if (!reserva.Confirmada)
+            throw new ArgumentException("Solo se pueden actualizar datos financieros de reservas confirmadas.");
+
+        await EnsureRangeAvailableAsync(reserva.ServiceId, reservaId, reserva.FechaReservaCliente, dto.HorasReservadas);
+
+        reserva.HorasReservadas = dto.HorasReservadas;
+        reserva.MontoAcordado = dto.MontoAcordado;
         await _context.SaveChangesAsync();
 
         return MapToDto(reserva);
@@ -158,16 +187,55 @@ public class ReservaService : IReservaService
         await _context.SaveChangesAsync();
     }
 
-    private async Task EnsureSlotAvailableAsync(Guid serviceId, DateTime slot)
+    // Checks that the given slot does not fall inside any confirmed reservation's time range.
+    // Reservations without HorasReservadas block only their exact 30-min start slot.
+    private async Task EnsureSlotNotInConfirmedRangeAsync(Guid serviceId, DateTime slot)
     {
-        var hasReserva = await _context.Reservas.AnyAsync(r => r.ServiceId == serviceId && r.FechaReservaCliente == slot);
         var hasVisita = await _context.Visitas.AnyAsync(v =>
             v.ServiceId == serviceId &&
             v.FechaHoraSolicitada == slot &&
             (v.Estado == "Pendiente" || v.Estado == "Confirmada"));
 
-        if (hasReserva || hasVisita)
+        if (hasVisita)
             throw new ArgumentException("Ya existe una visita o reserva para ese horario.");
+
+        var confirmedReservas = await _context.Reservas
+            .Where(r => r.ServiceId == serviceId && r.Confirmada)
+            .Select(r => new { r.FechaReservaCliente, r.HorasReservadas })
+            .ToListAsync();
+
+        var overlaps = confirmedReservas.Any(r =>
+        {
+            var end = r.HorasReservadas.HasValue
+                ? r.FechaReservaCliente.AddHours((double)r.HorasReservadas.Value)
+                : r.FechaReservaCliente.AddMinutes(30);
+            return slot >= r.FechaReservaCliente && slot < end;
+        });
+
+        if (overlaps)
+            throw new ArgumentException("El horario solicitado se solapa con una reserva confirmada.");
+    }
+
+    // Checks that [start, start+hours) does not overlap any other confirmed reservation's range.
+    private async Task EnsureRangeAvailableAsync(Guid serviceId, Guid excludeReservaId, DateTime start, decimal hours)
+    {
+        var end = start.AddHours((double)hours);
+
+        var confirmedReservas = await _context.Reservas
+            .Where(r => r.ServiceId == serviceId && r.Confirmada && r.Id != excludeReservaId)
+            .Select(r => new { r.FechaReservaCliente, r.HorasReservadas })
+            .ToListAsync();
+
+        var overlaps = confirmedReservas.Any(r =>
+        {
+            var rEnd = r.HorasReservadas.HasValue
+                ? r.FechaReservaCliente.AddHours((double)r.HorasReservadas.Value)
+                : r.FechaReservaCliente.AddMinutes(30);
+            return start < rEnd && r.FechaReservaCliente < end;
+        });
+
+        if (overlaps)
+            throw new ArgumentException("El rango de horas solicitado se solapa con otra reserva confirmada.");
     }
 
     private static DateTime NormalizeToHalfHourSlot(DateTime value)
@@ -184,6 +252,8 @@ public class ReservaService : IReservaService
         UserId = reserva.UserId,
         Confirmada = reserva.Confirmada,
         FechaReservaCliente = reserva.FechaReservaCliente,
+        MontoAcordado = reserva.MontoAcordado,
+        HorasReservadas = reserva.HorasReservadas,
         Usuario = reserva.User == null ? null : new UserDto
         {
             Id = reserva.User.Id,
@@ -194,6 +264,16 @@ public class ReservaService : IReservaService
             Activo = reserva.User.Activo,
             FechaCreacion = reserva.User.FechaCreacion,
             FechaActualizacion = reserva.User.FechaActualizacion
-        }
+        },
+        Pagos = (reserva.Pagos ?? []).Select(p => new PagoDto
+        {
+            Id = p.Id,
+            ReservaId = p.ReservaId,
+            TipoPago = p.TipoPago,
+            Importe = p.Importe,
+            FechaPago = p.FechaPago,
+            FechaCreacion = p.FechaCreacion,
+            FechaActualizacion = p.FechaActualizacion
+        }).ToList()
     };
 }
