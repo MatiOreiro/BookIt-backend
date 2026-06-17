@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Direccion> Direcciones { get; set; }
     public DbSet<Reserva> Reservas { get; set; }
     public DbSet<Visita> Visitas { get; set; }
+    public DbSet<Pago> Pagos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,6 +104,8 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(r => r.Id);
             entity.Property(r => r.Confirmada).HasDefaultValue(false);
             entity.Property(r => r.FechaReservaCliente).IsRequired();
+            entity.Property(r => r.MontoAcordado).HasPrecision(10, 2);
+            entity.Property(r => r.HorasReservadas).HasPrecision(5, 2);
 
             entity.HasOne(r => r.Service)
                 .WithMany(s => s.Reservas)
@@ -178,6 +181,21 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(st => st.Tag)
                 .WithMany(t => t.ServiceTags)
                 .HasForeignKey(st => st.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Pago>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.TipoPago).IsRequired().HasMaxLength(20);
+            entity.Property(p => p.Importe).HasPrecision(10, 2);
+            entity.Property(p => p.FechaPago).IsRequired();
+            entity.Property(p => p.FechaCreacion).IsRequired();
+            entity.Property(p => p.FechaActualizacion).IsRequired();
+
+            entity.HasOne(p => p.Reserva)
+                .WithMany(r => r.Pagos)
+                .HasForeignKey(p => p.ReservaId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

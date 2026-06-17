@@ -1,3 +1,4 @@
+// BookIt-backend/BookIt.API/DTOs/VisitaDto.cs
 namespace BookIt.API.DTOs;
 
 public class VisitaDto
@@ -7,6 +8,7 @@ public class VisitaDto
     public string? ServiceNombre { get; set; }
     public Guid UserId { get; set; }
     public string? UserNombre { get; set; }
+    public string? UserEmail { get; set; }
     public DateTime FechaHoraSolicitada { get; set; }
     public string Estado { get; set; } = string.Empty;
     public string? Mensaje { get; set; }
