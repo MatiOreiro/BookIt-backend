@@ -335,6 +335,8 @@ public class ServiceService : IServiceService
             UserId = reserva.UserId,
             Confirmada = reserva.Confirmada,
             FechaReservaCliente = reserva.FechaReservaCliente,
+            MontoAcordado = reserva.MontoAcordado,
+            HorasReservadas = reserva.HorasReservadas,
             Usuario = reserva.User == null ? null : new UserDto
             {
                 Id = reserva.User.Id,
@@ -345,7 +347,17 @@ public class ServiceService : IServiceService
                 Activo = reserva.User.Activo,
                 FechaCreacion = reserva.User.FechaCreacion,
                 FechaActualizacion = reserva.User.FechaActualizacion
-            }
+            },
+            Pagos = (reserva.Pagos ?? []).Select(p => new PagoDto
+            {
+                Id = p.Id,
+                ReservaId = p.ReservaId,
+                TipoPago = p.TipoPago,
+                Importe = p.Importe,
+                FechaPago = p.FechaPago,
+                FechaCreacion = p.FechaCreacion,
+                FechaActualizacion = p.FechaActualizacion
+            }).ToList()
         }).OrderBy(reserva => reserva.FechaReservaCliente).ToList() ?? new List<ReservaDto>();
     }
 
@@ -358,6 +370,7 @@ public class ServiceService : IServiceService
             ServiceNombre = service.Nombre,
             UserId = visita.UserId,
             UserNombre = visita.User?.Nombre,
+            UserEmail = visita.User?.Email,
             FechaHoraSolicitada = visita.FechaHoraSolicitada,
             Estado = visita.Estado,
             Mensaje = visita.Mensaje,
