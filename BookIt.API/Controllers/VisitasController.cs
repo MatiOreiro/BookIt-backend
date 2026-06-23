@@ -89,7 +89,7 @@ public class VisitasController : ControllerBase
         var isAdmin = User.IsInRole("administrador");
         if (dto.CrearReserva)
         {
-            var reserva = await _reservaService.CreateFromVisitaAsync(currentUserId.Value, isAdmin, visitaId);
+            var reserva = await _reservaService.CreateFromVisitaAsync(currentUserId.Value, isAdmin, visitaId, dto);
             return StatusCode(StatusCodes.Status201Created, reserva);
         }
 

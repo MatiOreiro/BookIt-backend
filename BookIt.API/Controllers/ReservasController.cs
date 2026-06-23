@@ -69,7 +69,7 @@ public class ReservasController : ControllerBase
             return Unauthorized();
 
         var isAdmin = User.IsInRole(AdminRole);
-        var reserva = await _reservaService.CreateFromVisitaAsync(currentUserId.Value, isAdmin, visitaId);
+        var reserva = await _reservaService.CreateFromVisitaAsync(currentUserId.Value, isAdmin, visitaId, new ConfirmarVisitaDto { CrearReserva = true });
         return StatusCode(StatusCodes.Status201Created, reserva);
     }
 

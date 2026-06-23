@@ -81,7 +81,7 @@ public class ReservaService : IReservaService
         return reservas.Select(MapToDto);
     }
 
-    public async Task<ReservaDto> CreateFromVisitaAsync(Guid currentUserId, bool isAdmin, Guid visitaId)
+    public async Task<ReservaDto> CreateFromVisitaAsync(Guid currentUserId, bool isAdmin, Guid visitaId, ConfirmarVisitaDto dto)
     {
         var visita = await _context.Visitas
             .Include(v => v.Service)
@@ -95,7 +95,8 @@ public class ReservaService : IReservaService
         if (!string.Equals(visita.Estado, "Pendiente", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("La visita ya fue procesada.");
 
-        var slot = NormalizeToHalfHourSlot(visita.FechaHoraSolicitada);
+        var rawFecha = dto.FechaReservaCliente ?? visita.FechaHoraSolicitada;
+        var slot = NormalizeToHalfHourSlot(rawFecha);
 
         await EnsureSlotNotInConfirmedRangeAsync(visita.ServiceId, slot, visita.Id);
 
@@ -114,6 +115,8 @@ public class ReservaService : IReservaService
             UserId = visita.UserId,
             Confirmada = true,
             FechaReservaCliente = slot,
+            HorasReservadas = dto.HorasReservadas,
+            MontoAcordado = dto.MontoAcordado,
             Service = visita.Service,
             User = visita.User
         };
