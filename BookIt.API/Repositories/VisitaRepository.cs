@@ -39,7 +39,7 @@ public class VisitaRepository : IVisitaRepository
     public async Task<IEnumerable<Visita>> GetByUserIdAsync(Guid userId)
     {
         return await _context.Visitas
-            .Include(v => v.Service)
+            .Include(v => v.Service).ThenInclude(s => s.Vendor)
             .Include(v => v.User)
             .Where(v => v.UserId == userId)
             .OrderByDescending(v => v.FechaCreacion)

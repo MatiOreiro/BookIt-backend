@@ -269,6 +269,12 @@ public class ReservaService : IReservaService
         FechaReservaCliente = reserva.FechaReservaCliente,
         MontoAcordado = reserva.MontoAcordado,
         HorasReservadas = reserva.HorasReservadas,
+        ServiceNombre = reserva.Service?.Nombre,
+        PrecioMinimo = reserva.Service?.PrecioMinimo ?? 0,
+        PrecioMaximo = reserva.Service?.PrecioMaximo ?? 0,
+        VendorNombre = reserva.Service?.Vendor?.Nombre,
+        VendorEmail = reserva.Service?.Vendor?.Email,
+        VendorTelefono = reserva.Service?.Vendor?.Telefono,
         Usuario = reserva.User == null ? null : new UserDto
         {
             Id = reserva.User.Id,

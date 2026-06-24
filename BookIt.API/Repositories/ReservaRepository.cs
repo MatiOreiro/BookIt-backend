@@ -33,7 +33,7 @@ public class ReservaRepository : IReservaRepository
     public async Task<IEnumerable<Reserva>> GetByUserIdAsync(Guid userId)
     {
         return await _context.Reservas
-            .Include(r => r.Service)
+            .Include(r => r.Service).ThenInclude(s => s.Vendor)
             .Include(r => r.User)
             .Include(r => r.Pagos)
             .Where(r => r.UserId == userId)

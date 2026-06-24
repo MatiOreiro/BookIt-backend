@@ -168,6 +168,9 @@ public class VisitaService : IVisitaService
         FechaHoraSolicitada = visita.FechaHoraSolicitada,
         Estado = visita.Estado,
         Mensaje = visita.Mensaje,
-        FechaCreacion = visita.FechaCreacion
+        FechaCreacion = visita.FechaCreacion,
+        VendorNombre = visita.Service?.Vendor?.Nombre,
+        VendorEmail = visita.Service?.Vendor?.Email,
+        VendorTelefono = visita.Service?.Vendor?.Telefono
     };
 }

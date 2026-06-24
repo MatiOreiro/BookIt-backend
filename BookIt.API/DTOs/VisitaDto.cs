@@ -13,4 +13,7 @@ public class VisitaDto
     public string Estado { get; set; } = string.Empty;
     public string? Mensaje { get; set; }
     public DateTime FechaCreacion { get; set; }
+    public string? VendorNombre { get; set; }
+    public string? VendorEmail { get; set; }
+    public string? VendorTelefono { get; set; }
 }
