@@ -323,7 +323,11 @@ public class ServiceService : IServiceService
         }).ToList() ?? new(),
         Reservas = BuildReservationDtos(service),
         Visitas = BuildVisitaDtos(service),
-        Imagenes = GetImageUrls(service.ImageUrlsJson)
+        Imagenes = GetImageUrls(service.ImageUrlsJson),
+        ServiciosAsociados = service.ServiciosAsociados?
+            .Where(ss => ss.Servicio != null)
+            .Select(ss => MapToServicioAsociadoDto(ss.Servicio!))
+            .ToList() ?? new()
     };
 
     private static List<ReservaDto> BuildReservationDtos(Service service)
@@ -415,6 +419,74 @@ public class ServiceService : IServiceService
         {
             return new List<string>();
         }
+    }
+
+    private static ServicioAsociadoDto MapToServicioAsociadoDto(Models.Service service) => new()
+    {
+        Id = service.Id,
+        Nombre = service.Nombre,
+        TipoServicio = service.TipoServicio,
+        PrecioMinimo = service.PrecioMinimo,
+        PrecioMaximo = service.PrecioMaximo,
+        Descripcion = service.Descripcion
+    };
+
+    public async Task<IEnumerable<ServicioAsociadoDto>> GetServiciosAsociadosAsync(Guid salonId)
+    {
+        var salon = await _serviceRepository.GetByIdAsync(salonId)
+            ?? throw new KeyNotFoundException("Salón no encontrado.");
+
+        return salon.ServiciosAsociados
+            .Where(ss => ss.Servicio != null)
+            .Select(ss => MapToServicioAsociadoDto(ss.Servicio!))
+            .ToList();
+    }
+
+    public async Task<ServicioAsociadoDto> AsociarServicioAsync(Guid salonId, Guid serviceId, Guid currentUserId)
+    {
+        var salon = await _serviceRepository.GetByIdAsync(salonId)
+            ?? throw new KeyNotFoundException("Salón no encontrado.");
+
+        var isSalon = string.Equals(salon.TipoServicio, "Salón", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(salon.TipoServicio, "Salon", StringComparison.OrdinalIgnoreCase);
+        if (!isSalon)
+            throw new ArgumentException("El servicio indicado no es un salón.");
+
+        if (salon.VendorId != currentUserId)
+            throw new UnauthorizedAccessException("No tenés permiso para gestionar este salón.");
+
+        if (salonId == serviceId)
+            throw new ArgumentException("No podés asociar el salón consigo mismo.");
+
+        var servicio = await _serviceRepository.GetByIdAsync(serviceId)
+            ?? throw new KeyNotFoundException("Servicio no encontrado.");
+
+        if (servicio.VendorId != currentUserId)
+            throw new ArgumentException("El servicio debe pertenecer al mismo dueño que el salón.");
+
+        if (salon.ServiciosAsociados.Any(ss => ss.ServiceId == serviceId))
+            throw new InvalidOperationException("Este servicio ya está asociado al salón.");
+
+        var association = new Models.SalonService { SalonId = salonId, ServiceId = serviceId };
+        _context.SalonServices.Add(association);
+        await _context.SaveChangesAsync();
+
+        return MapToServicioAsociadoDto(servicio);
+    }
+
+    public async Task QuitarServicioAsociadoAsync(Guid salonId, Guid serviceId, Guid currentUserId)
+    {
+        var salon = await _serviceRepository.GetByIdAsync(salonId)
+            ?? throw new KeyNotFoundException("Salón no encontrado.");
+
+        if (salon.VendorId != currentUserId)
+            throw new UnauthorizedAccessException("No tenés permiso para gestionar este salón.");
+
+        var association = salon.ServiciosAsociados.FirstOrDefault(ss => ss.ServiceId == serviceId)
+            ?? throw new KeyNotFoundException("La asociación no existe.");
+
+        _context.SalonServices.Remove(association);
+        await _context.SaveChangesAsync();
     }
 
     private static DireccionDto? BuildDireccionDto(Direccion? direccion)
