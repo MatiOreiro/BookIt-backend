@@ -28,6 +28,8 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(r => r.Pagos)
             .Include(s => s.Visitas)
                 .ThenInclude(v => v.User)
+            .Include(s => s.ServiciosAsociados)
+                .ThenInclude(ss => ss.Servicio)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
