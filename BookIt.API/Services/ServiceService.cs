@@ -70,6 +70,11 @@ public class ServiceService : IServiceService
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow,
             ImageUrlsJson = BuildImageUrlsJson(dto.Images),
+            DiasAtencionJson = BuildDiasAtencionJson(dto.DiasAtencion),
+            HoraAperturaReserva = dto.HoraAperturaReserva,
+            HoraCierreReserva = dto.HoraCierreReserva,
+            HoraAperturaVisita = dto.HoraAperturaVisita,
+            HoraCierreVisita = dto.HoraCierreVisita,
             ServiceEventCategories = (dto.CategoryIds ?? new List<Guid>())
                 .Select(categoryId => new ServiceEventCategory
                 {
@@ -113,6 +118,11 @@ public class ServiceService : IServiceService
         service.PrecioMaximo = normalized.PrecioMaximo;
         service.Capacidad = normalized.Capacidad;
         service.FechaActualizacion = DateTime.UtcNow;
+        service.DiasAtencionJson = BuildDiasAtencionJson(dto.DiasAtencion);
+        service.HoraAperturaReserva = dto.HoraAperturaReserva;
+        service.HoraCierreReserva = dto.HoraCierreReserva;
+        service.HoraAperturaVisita = dto.HoraAperturaVisita;
+        service.HoraCierreVisita = dto.HoraCierreVisita;
 
         if (dto.Images != null)
         {
@@ -327,7 +337,12 @@ public class ServiceService : IServiceService
         ServiciosAsociados = service.ServiciosAsociados?
             .Where(ss => ss.Servicio != null)
             .Select(ss => MapToServicioAsociadoDto(ss.Servicio!))
-            .ToList() ?? new()
+            .ToList() ?? new(),
+        DiasAtencion = ParseDiasAtencion(service.DiasAtencionJson),
+        HoraAperturaReserva = service.HoraAperturaReserva,
+        HoraCierreReserva = service.HoraCierreReserva,
+        HoraAperturaVisita = service.HoraAperturaVisita,
+        HoraCierreVisita = service.HoraCierreVisita
     };
 
     private static List<ReservaDto> BuildReservationDtos(Service service)
@@ -380,6 +395,20 @@ public class ServiceService : IServiceService
             Mensaje = visita.Mensaje,
             FechaCreacion = visita.FechaCreacion
         }).OrderBy(visita => visita.FechaHoraSolicitada).ToList() ?? new List<VisitaDto>();
+    }
+
+    private static string? BuildDiasAtencionJson(List<int>? dias)
+    {
+        if (dias == null || dias.Count == 0) return null;
+        var valid = dias.Where(d => d >= 0 && d <= 6).Distinct().OrderBy(d => d).ToList();
+        return valid.Count == 0 ? null : JsonSerializer.Serialize(valid);
+    }
+
+    private static List<int>? ParseDiasAtencion(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try { return JsonSerializer.Deserialize<List<int>>(json); }
+        catch { return null; }
     }
 
     private static string? BuildImageUrlsJson(IEnumerable<string>? images)

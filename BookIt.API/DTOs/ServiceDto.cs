@@ -21,6 +21,13 @@ public class ServiceDto
     public List<VisitaDto> Visitas { get; set; } = new();
     public List<string> Imagenes { get; set; } = new();
     public List<ServicioAsociadoDto> ServiciosAsociados { get; set; } = new();
+
+    // Horarios y días de atención (null = usar defaults: todos los días, 08-22)
+    public List<int>? DiasAtencion { get; set; }
+    public int? HoraAperturaReserva { get; set; }
+    public int? HoraCierreReserva { get; set; }
+    public int? HoraAperturaVisita { get; set; }
+    public int? HoraCierreVisita { get; set; }
 }
 
 public class VendorDto

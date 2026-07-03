@@ -16,6 +16,14 @@ public class Service
     public string? Direccion { get; set; }
     public string? ImageUrlsJson { get; set; }
     public int? Capacidad { get; set; }
+
+    // Horarios y días de atención
+    // DiasAtencionJson: JSON array de DayOfWeek (0=Dom, 1=Lun, ..., 6=Sáb). Null = todos los días.
+    public string? DiasAtencionJson { get; set; }
+    public int? HoraAperturaReserva { get; set; }
+    public int? HoraCierreReserva { get; set; }
+    public int? HoraAperturaVisita { get; set; }
+    public int? HoraCierreVisita { get; set; }
     
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
