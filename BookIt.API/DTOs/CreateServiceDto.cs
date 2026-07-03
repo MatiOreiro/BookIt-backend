@@ -41,4 +41,19 @@ public class CreateServiceDto
     public List<Guid>? CategoryIds { get; set; }
 
     public List<string>? Images { get; set; }
+
+    // Horarios y días de atención (opcionales; null = usar defaults)
+    public List<int>? DiasAtencion { get; set; }
+
+    [Range(0, 23, ErrorMessage = "La hora de apertura debe estar entre 0 y 23.")]
+    public int? HoraAperturaReserva { get; set; }
+
+    [Range(1, 24, ErrorMessage = "La hora de cierre debe estar entre 1 y 24.")]
+    public int? HoraCierreReserva { get; set; }
+
+    [Range(0, 23, ErrorMessage = "La hora de apertura debe estar entre 0 y 23.")]
+    public int? HoraAperturaVisita { get; set; }
+
+    [Range(1, 24, ErrorMessage = "La hora de cierre debe estar entre 1 y 24.")]
+    public int? HoraCierreVisita { get; set; }
 }
