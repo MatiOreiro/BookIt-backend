@@ -13,4 +13,7 @@ public interface IServiceService
     Task DeleteAsync(Guid serviceId, Guid currentUserId, bool isAdmin);
     Task<IEnumerable<ServiceDto>> SearchAsync(string? searchTerm, string? location, decimal? minPrice, decimal? maxPrice);
     Task<IEnumerable<ServiceDto>> FilterByPriceAndTypeAsync(decimal? minPrice, decimal? maxPrice, string? tipoServicio, List<Guid>? categoryIds);
+    Task<IEnumerable<ServicioAsociadoDto>> GetServiciosAsociadosAsync(Guid salonId);
+    Task<ServicioAsociadoDto> AsociarServicioAsync(Guid salonId, Guid serviceId, Guid currentUserId);
+    Task QuitarServicioAsociadoAsync(Guid salonId, Guid serviceId, Guid currentUserId);
 }

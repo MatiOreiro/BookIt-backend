@@ -20,6 +20,7 @@ public class ServiceDto
     public List<ReservaDto> Reservas { get; set; } = new();
     public List<VisitaDto> Visitas { get; set; } = new();
     public List<string> Imagenes { get; set; } = new();
+    public List<ServicioAsociadoDto> ServiciosAsociados { get; set; } = new();
 }
 
 public class VendorDto

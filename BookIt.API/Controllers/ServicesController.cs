@@ -167,6 +167,57 @@ public class ServicesController : ControllerBase
         return Ok(services);
     }
 
+    /// <summary>
+    /// Obtiene los servicios asociados a un salón.
+    /// </summary>
+    [HttpGet("{salonId}/servicios-asociados")]
+    [ProducesResponseType(typeof(IEnumerable<ServicioAsociadoDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetServiciosAsociados(Guid salonId)
+    {
+        var servicios = await _serviceService.GetServiciosAsociadosAsync(salonId);
+        return Ok(servicios);
+    }
+
+    /// <summary>
+    /// Asocia un servicio a un salón. Solo el dueño del salón puede hacerlo.
+    /// </summary>
+    [HttpPost("{salonId}/servicios-asociados")]
+    [Authorize]
+    [ProducesResponseType(typeof(ServicioAsociadoDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AsociarServicio(Guid salonId, [FromBody] CreateSalonServiceDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        var servicio = await _serviceService.AsociarServicioAsync(salonId, dto.ServiceId, currentUserId.Value);
+        return StatusCode(StatusCodes.Status201Created, servicio);
+    }
+
+    /// <summary>
+    /// Quita la asociación de un servicio a un salón. Solo el dueño del salón puede hacerlo.
+    /// </summary>
+    [HttpDelete("{salonId}/servicios-asociados/{serviceId}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> QuitarServicioAsociado(Guid salonId, Guid serviceId)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized();
+
+        await _serviceService.QuitarServicioAsociadoAsync(salonId, serviceId, currentUserId.Value);
+        return NoContent();
+    }
+
     private Guid? GetCurrentUserId()
     {
         var rawUserId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)

@@ -22,6 +22,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Reserva> Reservas { get; set; }
     public DbSet<Visita> Visitas { get; set; }
     public DbSet<Pago> Pagos { get; set; }
+    public DbSet<SalonService> SalonServices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -196,6 +197,21 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(p => p.Reserva)
                 .WithMany(r => r.Pagos)
                 .HasForeignKey(p => p.ReservaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SalonService>(entity =>
+        {
+            entity.HasKey(ss => new { ss.SalonId, ss.ServiceId });
+
+            entity.HasOne(ss => ss.Salon)
+                .WithMany(s => s.ServiciosAsociados)
+                .HasForeignKey(ss => ss.SalonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(ss => ss.Servicio)
+                .WithMany(s => s.SalonesQueLoIncluyen)
+                .HasForeignKey(ss => ss.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
