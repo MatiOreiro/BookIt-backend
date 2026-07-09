@@ -18,4 +18,6 @@ public class ReservaDto
     public string? VendorTelefono { get; set; }
     public UserDto? Usuario { get; set; }
     public List<PagoDto> Pagos { get; set; } = [];
+    public bool Realizada { get; set; }
+    public Guid? ResenaId { get; set; }
 }

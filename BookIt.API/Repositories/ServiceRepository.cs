@@ -26,10 +26,13 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(r => r.User)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.Pagos)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.Resena)
             .Include(s => s.Visitas)
                 .ThenInclude(v => v.User)
             .Include(s => s.ServiciosAsociados)
                 .ThenInclude(ss => ss.Servicio)
+            .Include(s => s.Resenas)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -45,8 +48,11 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(r => r.User)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.Pagos)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.Resena)
             .Include(s => s.Visitas)
                 .ThenInclude(v => v.User)
+            .Include(s => s.Resenas)
             .Where(s => s.VendorId == vendorId)
             .ToListAsync();
     }
@@ -63,8 +69,11 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(r => r.User)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.Pagos)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.Resena)
             .Include(s => s.Visitas)
                 .ThenInclude(v => v.User)
+            .Include(s => s.Resenas)
             .ToListAsync();
     }
 
@@ -80,8 +89,11 @@ public class ServiceRepository : IServiceRepository
                 .ThenInclude(r => r.User)
             .Include(s => s.Reservas)
                 .ThenInclude(r => r.Pagos)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.Resena)
             .Include(s => s.Visitas)
                 .ThenInclude(v => v.User)
+            .Include(s => s.Resenas)
             .Where(s => s.Activo)
             .ToListAsync();
     }

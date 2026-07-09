@@ -27,6 +27,7 @@ public class ReservaRepository : IReservaRepository
             .Include(r => r.Service)
             .Include(r => r.User)
             .Include(r => r.Pagos)
+            .Include(r => r.Resena)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
@@ -36,6 +37,7 @@ public class ReservaRepository : IReservaRepository
             .Include(r => r.Service).ThenInclude(s => s.Vendor)
             .Include(r => r.User)
             .Include(r => r.Pagos)
+            .Include(r => r.Resena)
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.FechaReservaCliente)
             .ToListAsync();
@@ -47,6 +49,7 @@ public class ReservaRepository : IReservaRepository
             .Include(r => r.Service)
             .Include(r => r.User)
             .Include(r => r.Pagos)
+            .Include(r => r.Resena)
             .Where(r => r.ServiceId == serviceId)
             .OrderByDescending(r => r.FechaReservaCliente)
             .ToListAsync();

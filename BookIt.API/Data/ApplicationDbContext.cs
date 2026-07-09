@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Visita> Visitas { get; set; }
     public DbSet<Pago> Pagos { get; set; }
     public DbSet<SalonService> SalonServices { get; set; }
+    public DbSet<Resena> Resenas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -213,6 +214,33 @@ public class ApplicationDbContext : DbContext
                 .WithMany(s => s.SalonesQueLoIncluyen)
                 .HasForeignKey(ss => ss.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Resena>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.Comentario).HasMaxLength(2000);
+            entity.Property(r => r.MediaUrlsJson).HasColumnType("text");
+            entity.Property(r => r.FechaCreacion).IsRequired();
+            entity.Property(r => r.FechaActualizacion).IsRequired();
+
+            entity.HasIndex(r => r.ReservaId).IsUnique();
+            entity.HasIndex(r => r.ServiceId);
+
+            entity.HasOne(r => r.Reserva)
+                .WithOne(res => res.Resena)
+                .HasForeignKey<Resena>(r => r.ReservaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.Service)
+                .WithMany(s => s.Resenas)
+                .HasForeignKey(r => r.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         SeedGeography(modelBuilder);
