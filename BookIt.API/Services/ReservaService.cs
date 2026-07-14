@@ -269,6 +269,8 @@ public class ReservaService : IReservaService
         FechaReservaCliente = reserva.FechaReservaCliente,
         MontoAcordado = reserva.MontoAcordado,
         HorasReservadas = reserva.HorasReservadas,
+        Realizada = reserva.EsRealizada(),
+        ResenaId = reserva.Resena?.Id,
         ServiceNombre = reserva.Service?.Nombre,
         PrecioMinimo = reserva.Service?.PrecioMinimo ?? 0,
         PrecioMaximo = reserva.Service?.PrecioMaximo ?? 0,

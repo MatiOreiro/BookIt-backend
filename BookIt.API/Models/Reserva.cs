@@ -14,4 +14,11 @@ public class Reserva
     public Service? Service { get; set; }
     public User? User { get; set; }
     public ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+    public Resena? Resena { get; set; }
+
+    public bool EsRealizada() =>
+        Confirmada &&
+        (HorasReservadas.HasValue
+            ? FechaReservaCliente.AddHours((double)HorasReservadas.Value)
+            : FechaReservaCliente.AddMinutes(30)) <= DateTime.UtcNow;
 }

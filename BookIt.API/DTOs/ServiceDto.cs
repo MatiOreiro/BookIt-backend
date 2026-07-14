@@ -21,6 +21,8 @@ public class ServiceDto
     public List<VisitaDto> Visitas { get; set; } = new();
     public List<string> Imagenes { get; set; } = new();
     public List<ServicioAsociadoDto> ServiciosAsociados { get; set; } = new();
+    public double? AvgRating { get; set; }
+    public int ReviewCount { get; set; }
 
     // Horarios y días de atención (null = usar defaults: todos los días, 08-22)
     public List<int>? DiasAtencion { get; set; }

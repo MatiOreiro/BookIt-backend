@@ -37,4 +37,5 @@ public class Service
     public ICollection<Visita> Visitas { get; set; } = new List<Visita>();
     public ICollection<SalonService> ServiciosAsociados { get; set; } = new List<SalonService>();
     public ICollection<SalonService> SalonesQueLoIncluyen { get; set; } = new List<SalonService>();
+    public ICollection<Resena> Resenas { get; set; } = new List<Resena>();
 }

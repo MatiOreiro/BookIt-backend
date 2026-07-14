@@ -342,7 +342,11 @@ public class ServiceService : IServiceService
         HoraAperturaReserva = service.HoraAperturaReserva,
         HoraCierreReserva = service.HoraCierreReserva,
         HoraAperturaVisita = service.HoraAperturaVisita,
-        HoraCierreVisita = service.HoraCierreVisita
+        HoraCierreVisita = service.HoraCierreVisita,
+        AvgRating = service.Resenas != null && service.Resenas.Count > 0
+            ? service.Resenas.Average(r => r.Puntuacion)
+            : (double?)null,
+        ReviewCount = service.Resenas?.Count ?? 0
     };
 
     private static List<ReservaDto> BuildReservationDtos(Service service)
@@ -356,6 +360,8 @@ public class ServiceService : IServiceService
             FechaReservaCliente = reserva.FechaReservaCliente,
             MontoAcordado = reserva.MontoAcordado,
             HorasReservadas = reserva.HorasReservadas,
+            Realizada = reserva.EsRealizada(),
+            ResenaId = reserva.Resena?.Id,
             Usuario = reserva.User == null ? null : new UserDto
             {
                 Id = reserva.User.Id,

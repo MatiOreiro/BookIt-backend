@@ -122,6 +122,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IVisitaRepository, VisitaRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+builder.Services.AddScoped<IResenaRepository, ResenaRepository>();
 
 // ─── Services ────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -130,6 +131,7 @@ builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IVisitaService, VisitaService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
+builder.Services.AddScoped<IResenaService, ResenaService>();
 
 // ─── Controllers ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
