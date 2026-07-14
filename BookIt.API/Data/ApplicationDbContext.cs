@@ -24,6 +24,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Pago> Pagos { get; set; }
     public DbSet<SalonService> SalonServices { get; set; }
     public DbSet<Resena> Resenas { get; set; }
+    public DbSet<Propuesta> Propuestas { get; set; }
+    public DbSet<PropuestaServicio> PropuestaServicios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -240,6 +242,38 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(r => r.User)
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Propuesta>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Nombre).IsRequired().HasMaxLength(150);
+            entity.Property(p => p.FechaCreacion).IsRequired();
+
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(p => p.Salon)
+                .WithMany()
+                .HasForeignKey(p => p.SalonId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PropuestaServicio>(entity =>
+        {
+            entity.HasKey(ps => new { ps.PropuestaId, ps.ServiceId });
+
+            entity.HasOne(ps => ps.Propuesta)
+                .WithMany(p => p.Servicios)
+                .HasForeignKey(ps => ps.PropuestaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(ps => ps.Service)
+                .WithMany()
+                .HasForeignKey(ps => ps.ServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
