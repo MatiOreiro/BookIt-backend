@@ -10,9 +10,51 @@ namespace BookIt.API.Migrations
     /// <inheritdoc />
     public partial class SeedAllMontevideoBarrios : Migration
     {
+        // The renames in Up/Down permute names among existing Montevideo barrio rows
+        // (e.g. row 1 "Centro" -> "Ciudad Vieja", the name row 3 currently holds).
+        // Renaming in-place would trip the unique (DepartamentoId, Nombre) index
+        // mid-transaction, so every changing row is first staged through a placeholder
+        // that can't collide with anything, then the real renames are applied.
+        private static readonly string[] MontevideoRenameIds =
+        {
+            "20000000-0000-0000-0000-000000000001",
+            "20000000-0000-0000-0000-000000000002",
+            "20000000-0000-0000-0000-000000000003",
+            "20000000-0000-0000-0000-000000000004",
+            "20000000-0000-0000-0000-000000000005",
+            "20000000-0000-0000-0000-000000000006",
+            "20000000-0000-0000-0000-000000000008",
+            "20000000-0000-0000-0000-000000000010",
+            "20000000-0000-0000-0000-000000000011",
+            "20000000-0000-0000-0000-000000000012",
+            "20000000-0000-0000-0000-000000000013",
+            "20000000-0000-0000-0000-000000000014",
+            "20000000-0000-0000-0000-000000000015",
+            "20000000-0000-0000-0000-000000000016",
+            "20000000-0000-0000-0000-000000000017",
+            "20000000-0000-0000-0000-000000000018",
+            "20000000-0000-0000-0000-000000000019",
+            "20000000-0000-0000-0000-000000000020",
+            "20000000-0000-0000-0000-000000000021",
+            "20000000-0000-0000-0000-000000000022",
+            "20000000-0000-0000-0000-000000000023",
+            "20000000-0000-0000-0000-000000000024",
+            "20000000-0000-0000-0000-000000000025"
+        };
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            foreach (var id in MontevideoRenameIds)
+            {
+                migrationBuilder.UpdateData(
+                    table: "Barrios",
+                    keyColumn: "Id",
+                    keyValue: new Guid(id),
+                    column: "Nombre",
+                    value: $"__tmp_migrating_{id[^4..]}");
+            }
+
             migrationBuilder.UpdateData(
                 table: "Barrios",
                 keyColumn: "Id",
@@ -497,6 +539,16 @@ namespace BookIt.API.Migrations
                 table: "Barrios",
                 keyColumn: "Id",
                 keyValue: new Guid("20000000-0000-0000-0000-000000000076"));
+
+            foreach (var id in MontevideoRenameIds)
+            {
+                migrationBuilder.UpdateData(
+                    table: "Barrios",
+                    keyColumn: "Id",
+                    keyValue: new Guid(id),
+                    column: "Nombre",
+                    value: $"__tmp_migrating_{id[^4..]}");
+            }
 
             migrationBuilder.UpdateData(
                 table: "Barrios",
