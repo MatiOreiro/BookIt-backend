@@ -132,6 +132,7 @@ builder.Services.AddScoped<IVisitaService, VisitaService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
 builder.Services.AddScoped<IResenaService, ResenaService>();
+builder.Services.AddScoped<IPropuestaService, PropuestaService>();
 
 // ─── Controllers ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();

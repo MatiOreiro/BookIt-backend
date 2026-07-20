@@ -3,6 +3,7 @@ using System;
 using BookIt.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookIt.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260714232145_AddPropuestas")]
+    partial class AddPropuestas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,37 +51,37 @@ namespace BookIt.API.Migrations
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000001"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Ciudad Vieja"
+                            Nombre = "Centro"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000002"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Centro"
+                            Nombre = "Cordón"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000003"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Barrio Sur"
+                            Nombre = "Ciudad Vieja"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000004"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Cordón"
+                            Nombre = "Palermo"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000005"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Palermo"
+                            Nombre = "Parque Rodó"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000006"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Parque Rodó"
+                            Nombre = "Pocitos"
                         },
                         new
                         {
@@ -90,7 +93,7 @@ namespace BookIt.API.Migrations
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000008"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Pocitos"
+                            Nombre = "Malvín"
                         },
                         new
                         {
@@ -102,403 +105,97 @@ namespace BookIt.API.Migrations
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000010"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Unión"
+                            Nombre = "Punta Gorda"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000011"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Blanqueada"
+                            Nombre = "Carrasco"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000012"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Parque Batlle"
+                            Nombre = "Cerro"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000013"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Villa Dolores"
+                            Nombre = "Aguada"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000014"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Mondiola"
+                            Nombre = "Reducto"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000015"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Malvín"
+                            Nombre = "La Blanqueada"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000016"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Malvín Norte"
+                            Nombre = "Prado"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000017"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Punta Gorda"
+                            Nombre = "Tajamar"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000018"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Carrasco"
+                            Nombre = "La Comercial"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000019"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Carrasco Norte"
+                            Nombre = "Brazo Oriental"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000020"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Tres Cruces"
+                            Nombre = "Belvedere"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000021"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Comercial"
+                            Nombre = "Capurro"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000022"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Villa Muñoz"
+                            Nombre = "Jacinto Vera"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000023"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Goes"
+                            Nombre = "Paso de las Duranas"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000024"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Aguada"
+                            Nombre = "Piedras Blancas"
                         },
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000025"),
                             DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Reducto"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000026"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Arroyo Seco"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000027"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Bella Vista"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000028"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Figurita"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000029"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Jacinto Vera"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000030"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Larrañaga"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000031"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Maroñas"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000032"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Parque Guaraní"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000033"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Flor de Maroñas"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000034"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Villa Española"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000035"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Simón Bolívar"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000036"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Brazo Oriental"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000037"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Atahualpa"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000038"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Prado"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000039"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Capurro"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000040"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Paso Molino"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000041"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Belvedere"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000042"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Sayago"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000043"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Paso de las Duranas"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000044"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Aires Puros"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000045"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Cerrito de la Victoria"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000046"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Pérez Castellanos"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000047"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Ituzaingó"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000048"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Cruz de Carrasco"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000049"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Bella Italia"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000050"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Punta de Rieles"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000051"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Nueva España"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000052"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Chancha"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000053"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Jardines del Hipódromo"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000054"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Piedras Blancas"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000055"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Marconi"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000056"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Plácido Ellauri"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000057"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Las Acacias"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000058"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
                             Nombre = "Casavalle"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000059"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Manga"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000060"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Lavalleja"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000061"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Peñarol"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000062"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Sayago Norte"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000063"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Conciliación"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000064"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Nuevo París"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000065"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Teja / Pueblo Victoria"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000066"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Tres Ombúes"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000067"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "El Tobogán"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000068"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Cerro Norte"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000069"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Villa del Cerro"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000070"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Casabó"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000071"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Santa Catalina"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000072"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "La Paloma-Tomkinson"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000073"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Villa Colón"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000074"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Lezica"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000075"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Los Bulevares"
-                        },
-                        new
-                        {
-                            Id = new Guid("20000000-0000-0000-0000-000000000076"),
-                            DepartamentoId = new Guid("10000000-0000-0000-0000-000000000010"),
-                            Nombre = "Paso de la Arena"
                         },
                         new
                         {
@@ -1238,7 +935,7 @@ namespace BookIt.API.Migrations
                             FechaActualizacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaCreacion = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Admin BookIt",
-                            PasswordHash = "$2a$11$mwvSj2qly83vKXHqNTujF.Urh5UwFgA5OtOJezSy5oFNaqK/dkH3W",
+                            PasswordHash = "$2a$11$DTPwUNcGef0JPT76P78iUeEOZYUCXvvwga/ssMCpi4CqiUS8eNKTG",
                             Rol = "administrador",
                             Telefono = "000-000-0000"
                         });
