@@ -1,6 +1,6 @@
 services:
   bookit-db:
-    image: postgres:16-alpine
+    image: postgres:18
     environment:
       POSTGRES_DB: bookit_local
       POSTGRES_USER: postgres
