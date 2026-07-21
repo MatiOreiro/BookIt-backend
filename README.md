@@ -10,7 +10,6 @@ API REST del marketplace de reserva de salones de eventos y servicios complement
 - **Entity Framework Core 8** + **Npgsql** — ORM, migraciones Code First
 - **PostgreSQL**
 - **JWT Bearer** (HS256) para autenticación, con **BCrypt** para hash de contraseñas
-- **Docker** + **docker-compose** (API + Postgres) para levantar todo el entorno local con un solo comando
 
 ## 🏗️ Arquitectura
 
@@ -56,39 +55,22 @@ No hay proyecto de tests en la solución (`BookIt-backend.sln` solo incluye `Boo
 
 ## ⚙️ Cómo correrlo localmente
 
-### Opción A — con Docker (recomendada, un solo comando)
+Requisitos: .NET 8 SDK. La base de datos es un único Azure Database for PostgreSQL Flexible Server (mismo para dev y prod) — no hace falta Postgres local.
 
 ```bash
 git clone https://github.com/MatiOreiro/BookIt-backend.git
 cd BookIt-backend
-docker compose up --build
 ```
 
-Esto levanta Postgres y la API juntos. La API queda expuesta en `http://localhost:8080`.
-
-> Nota: `docker-compose.yml` toma `JwtSettings__SecretKey` de una variable de entorno del sistema (`${JwtSettings__SecretKey}`). Si no la tenés seteada, exportala antes de levantar el compose:
-> ```bash
-> export JwtSettings__SecretKey="una-clave-larga-de-al-menos-32-bytes"
-> ```
-
-### Opción B — sin Docker
-
-Requisitos: .NET 8 SDK, PostgreSQL corriendo localmente.
-
-```bash
-git clone https://github.com/MatiOreiro/BookIt-backend.git
-cd BookIt-backend
-cp .env.example .env
-```
-
-Completar `.env` con tu cadena de conexión real y una clave JWT de al menos 32 bytes:
+Crear `BookIt.API/.env` con la cadena de conexión al Flexible Server y una clave JWT de al menos 32 bytes:
 
 ```
-ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=bookit_local;Username=postgres;Password=postgres;SSL Mode=Require;Trust Server Certificate=true
+ConnectionStrings__DefaultConnection=Host=<tu-servidor>.postgres.database.azure.com;Port=5432;Database=bookit;Username=<usuario>;Password=<password>;SSL Mode=Require;Trust Server Certificate=true
 JwtSettings__SecretKey=reemplazar-con-una-clave-larga-y-aleatoria-de-al-menos-32-bytes
 JwtSettings__Issuer=BookIt.API
 JwtSettings__Audience=BookIt.Client
 JwtSettings__ExpiresInMinutes=60
+Cors__AllowedOrigins__0=http://localhost:3000
 ```
 
 ```bash
