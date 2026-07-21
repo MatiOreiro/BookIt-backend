@@ -38,12 +38,14 @@ Recursos de Azure: la base de datos ya existe; los App Services (backend y front
 ## Cambios — Frontend (BookIt-frontend)
 
 ### Backend URL configurable
-- `next.config.mjs:12` hoy hardcodea el destino del rewrite (`https://bookit-backend-es10.onrender.com`). Se reemplaza por una variable de entorno (`BACKEND_URL`), leída en build time, para no hardcodear el host de Azure en el código y poder cambiarlo sin un commit.
+- El cliente HTTP real (`src/api/axiosClient.ts`) ya lee la URL del backend desde `NEXT_PUBLIC_API_BASE_URL` (variable de entorno, no hardcodeada). No hace falta cambiar código para esto.
+- `next.config.mjs:9-15` define un rewrite (`/api/backend/:path*` → `https://bookit-backend-es10.onrender.com`) que no se usa en ningún lado del código — queda muerto apuntando al backend de Render que se da de baja. Se elimina.
+- Se agrega `output: 'standalone'` a `next.config.mjs` para poder deployar a Azure App Service (Node) sin Docker con un artefacto autocontenido.
 
 ### GitHub Actions
 - Nuevo workflow `.github/workflows/azure-deploy.yml`:
   - Trigger: push a `main`.
-  - Steps: `npm ci` → `npm run build` → deploy a Azure App Service (Node), usando el publish profile como GitHub Secret (`AZURE_FRONTEND_PUBLISH_PROFILE`) y `BACKEND_URL` como GitHub Variable/Secret inyectada en el build.
+  - Steps: `npm ci` → `npm run build` (con `NEXT_PUBLIC_API_BASE_URL` inyectada como GitHub Secret, ya que Next.js la hornea en el bundle de cliente en build time) → armar el paquete standalone → deploy a Azure App Service (Node), usando el publish profile como GitHub Secret (`AZURE_FRONTEND_PUBLISH_PROFILE`).
 
 ## Flujo de git
 
