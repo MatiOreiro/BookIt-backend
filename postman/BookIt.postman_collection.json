@@ -1,0 +1,2160 @@
+{
+  "info": {
+    "_postman_id": "b00k1t00-0000-4000-8000-000000000001",
+    "name": "BookIt API - Automated Tests",
+    "description": "Suite de tests automatizados para BookIt.API. Cubre autenticación, usuarios, geografía, categorías/tags, servicios, visitas, reservas, pagos y reseñas, incluyendo casos positivos, de autorización y de reglas de negocio.\n\nEjecutar con el Collection Runner o con Newman, en orden (las carpetas están numeradas y tienen dependencias entre sí: Auth debe correr antes que Services, Services antes que Visitas/Reservas, etc.).\n\nVariables importantes:\n- baseUrl: por defecto http://localhost:5062 (perfil http del launchSettings). Cambiar si la API corre en otro puerto.\n- adminEmail/adminPassword: credenciales del admin sembrado por la app (admin@bookit.com / Admin1234!). Si esa semilla cambia, actualizar estas variables.\n\nNota de comportamiento observado: GlobalExceptionMiddleware mapea UnauthorizedAccessException a 403 Forbidden (no 401), por lo que login con credenciales inválidas y errores de 'no tenés permiso' devuelven 403. Los tests reflejan el comportamiento real del código, no la documentación de Swagger.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": null,
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Tiempo de respuesta razonable (<5000ms)', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5062" },
+    { "key": "adminEmail", "value": "admin@bookit.com" },
+    { "key": "adminPassword", "value": "Admin1234!" },
+    { "key": "adminToken", "value": "" },
+    { "key": "adminId", "value": "" },
+    { "key": "clienteEmail", "value": "" },
+    { "key": "clientePassword", "value": "" },
+    { "key": "clientePhone", "value": "" },
+    { "key": "clienteToken", "value": "" },
+    { "key": "clienteId", "value": "" },
+    { "key": "rolInvalidoEmail", "value": "" },
+    { "key": "vendorEmail", "value": "" },
+    { "key": "vendorPassword", "value": "" },
+    { "key": "vendorPhone", "value": "" },
+    { "key": "vendorToken", "value": "" },
+    { "key": "vendorId", "value": "" },
+    { "key": "departamentoId", "value": "" },
+    { "key": "barrioId", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "salonServiceId", "value": "" },
+    { "key": "serviceId2", "value": "" },
+    { "key": "visitaId", "value": "" },
+    { "key": "visitaId2", "value": "" },
+    { "key": "reservaId", "value": "" },
+    { "key": "reservaId2", "value": "" },
+    { "key": "reservaId3", "value": "" },
+    { "key": "reservaId4", "value": "" },
+    { "key": "pagoId", "value": "" },
+    { "key": "visitaFecha1", "value": "" },
+    { "key": "visitaFecha2", "value": "" },
+    { "key": "reservaFecha2", "value": "" },
+    { "key": "reservaFecha3", "value": "" },
+    { "key": "reservaFecha4", "value": "" },
+    { "key": "pagoFecha", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "00 - Geografia y Catalogos",
+      "item": [
+        {
+          "name": "GET Departamentos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Devuelve al menos un departamento', function () {",
+                  "    pm.expect(json).to.be.an('array');",
+                  "    pm.expect(json.length).to.be.above(0);",
+                  "});",
+                  "if (json.length > 0) {",
+                  "    pm.expect(json[0]).to.have.property('id');",
+                  "    pm.collectionVariables.set('departamentoId', json[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/departamentos",
+              "host": ["{{baseUrl}}"],
+              "path": ["departamentos"]
+            }
+          }
+        },
+        {
+          "name": "GET Barrios por Departamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Devuelve al menos un barrio', function () {",
+                  "    pm.expect(json).to.be.an('array');",
+                  "    pm.expect(json.length).to.be.above(0);",
+                  "});",
+                  "if (json.length > 0) {",
+                  "    pm.expect(json[0].departamentoId).to.eql(pm.collectionVariables.get('departamentoId'));",
+                  "    pm.collectionVariables.set('barrioId', json[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/departamentos/{{departamentoId}}/barrios",
+              "host": ["{{baseUrl}}"],
+              "path": ["departamentos", "{{departamentoId}}", "barrios"]
+            }
+          }
+        },
+        {
+          "name": "GET Categorias de Evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Devuelve categorias sembradas', function () {",
+                  "    pm.expect(json).to.be.an('array');",
+                  "    pm.expect(json.length).to.be.above(0);",
+                  "});",
+                  "if (json.length > 0) {",
+                  "    pm.collectionVariables.set('categoryId', json[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/event-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["event-categories"]
+            }
+          }
+        },
+        {
+          "name": "GET Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('La respuesta es un array', function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Auth",
+      "item": [
+        {
+          "name": "POST Register Cliente",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "pm.collectionVariables.set('clienteEmail', `cliente.${ts}@bookittest.com`);",
+                  "pm.collectionVariables.set('clientePassword', 'TestPass1!');",
+                  "const digits = Math.floor(1000000 + Math.random() * 9000000).toString();",
+                  "pm.collectionVariables.set('clientePhone', '09' + digits);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Devuelve token y usuario con rol usuario', function () {",
+                  "    pm.expect(json.token).to.be.a('string').and.not.empty;",
+                  "    pm.expect(json.user).to.have.property('id');",
+                  "    pm.expect(json.user.rol).to.eql('usuario');",
+                  "    pm.expect(json.user.email).to.eql(pm.collectionVariables.get('clienteEmail'));",
+                  "});",
+                  "pm.collectionVariables.set('clienteToken', json.token);",
+                  "pm.collectionVariables.set('clienteId', json.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente de Prueba\",\n  \"telefono\": \"{{clientePhone}}\",\n  \"email\": \"{{clienteEmail}}\",\n  \"password\": \"{{clientePassword}}\",\n  \"rol\": \"usuario\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST Register Cliente - Email duplicado (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409 Conflict', function () { pm.response.to.have.status(409); });",
+                  "pm.test('Mensaje indica email ya registrado', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('ya está registrado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Duplicado\",\n  \"telefono\": \"{{clientePhone}}\",\n  \"email\": \"{{clienteEmail}}\",\n  \"password\": \"{{clientePassword}}\",\n  \"rol\": \"usuario\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST Register Cliente - Datos invalidos (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"A\",\n  \"telefono\": \"12345\",\n  \"email\": \"no-es-un-email\",\n  \"password\": \"123\",\n  \"rol\": \"usuario\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST Register - Rol no permitido (400)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('rolInvalidoEmail', `rolinvalido.${Date.now()}@bookittest.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 - rol no permitido (previene escalada de privilegios)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Mensaje menciona el rol', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('rol');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Intento Admin\",\n  \"telefono\": \"091234567\",\n  \"email\": \"{{rolInvalidoEmail}}\",\n  \"password\": \"TestPass1!\",\n  \"rol\": \"administrador\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST Login Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Devuelve token valido para el cliente', function () {",
+                  "    pm.expect(json.token).to.be.a('string').and.not.empty;",
+                  "    pm.expect(json.user.id).to.eql(pm.collectionVariables.get('clienteId'));",
+                  "});",
+                  "pm.collectionVariables.set('clienteToken', json.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"password\": \"{{clientePassword}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST Login - Credenciales invalidas (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Nota: AuthService lanza UnauthorizedAccessException, que GlobalExceptionMiddleware",
+                  "// mapea a 403 Forbidden (no 401), a pesar de lo documentado en Swagger.",
+                  "pm.test('Status 403 Forbidden (comportamiento real del middleware)', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"password\": \"PasswordIncorrecta1!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST Register Vendor (Salon)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "pm.collectionVariables.set('vendorEmail', `vendor.${ts}@bookittest.com`);",
+                  "pm.collectionVariables.set('vendorPassword', 'VendorPass1!');",
+                  "const digits = Math.floor(1000000 + Math.random() * 9000000).toString();",
+                  "pm.collectionVariables.set('vendorPhone', '09' + digits);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Rol pasa a vendedor', function () {",
+                  "    pm.expect(json.user.rol).to.eql('vendedor');",
+                  "});",
+                  "pm.collectionVariables.set('vendorToken', json.token);",
+                  "pm.collectionVariables.set('vendorId', json.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Vendedor de Prueba\",\n  \"telefono\": \"{{vendorPhone}}\",\n  \"email\": \"{{vendorEmail}}\",\n  \"password\": \"{{vendorPassword}}\",\n  \"nombreServicio\": \"Salon de Prueba Postman\",\n  \"descripcionServicio\": \"Salon creado por la suite automatizada de Postman para pruebas.\",\n  \"ubicacion\": \"Montevideo\",\n  \"tipoServicio\": \"Salón\",\n  \"precioMinimo\": 1000,\n  \"precioMaximo\": 5000,\n  \"direccion\": {\n    \"departamentoId\": \"{{departamentoId}}\",\n    \"barrioId\": \"{{barrioId}}\",\n    \"calle\": \"Av. de Prueba 1234\"\n  },\n  \"capacidad\": 150,\n  \"categoryIds\": [\"{{categoryId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register-vendor",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register-vendor"]
+            }
+          }
+        },
+        {
+          "name": "POST Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Rol es administrador', function () {",
+                  "    pm.expect(json.user.rol).to.eql('administrador');",
+                  "});",
+                  "pm.collectionVariables.set('adminToken', json.token);",
+                  "pm.collectionVariables.set('adminId', json.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Depende del usuario admin sembrado en ApplicationDbContext.SeedData (admin@bookit.com / Admin1234!). Si esa semilla cambia, actualizar las variables adminEmail/adminPassword."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Users",
+      "item": [
+        {
+          "name": "GET Me sin token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 sin autenticacion', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "GET Me (Cliente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Devuelve el perfil del cliente autenticado', function () {",
+                  "    pm.expect(json.id).to.eql(pm.collectionVariables.get('clienteId'));",
+                  "    pm.expect(json.email).to.eql(pm.collectionVariables.get('clienteEmail'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "GET Usuario por Id (self)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('El id coincide', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('clienteId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{clienteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{clienteId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Todos los usuarios - Cliente (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - requiere rol administrador', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "GET Todos los usuarios - Admin (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Incluye al cliente registrado', function () {",
+                  "    pm.expect(json).to.be.an('array');",
+                  "    const ids = json.map(u => u.id);",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('clienteId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "POST Cambiar contrasena - actual incorrecta (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - password actual incorrecta', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Incorrecta1!\",\n  \"newPassword\": \"NuevaPass1!\",\n  \"confirmNewPassword\": \"NuevaPass1!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "POST Cambiar contrasena (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });",
+                  "pm.collectionVariables.set('clientePassword', 'NuevaPass1!');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{clientePassword}}\",\n  \"newPassword\": \"NuevaPass1!\",\n  \"confirmNewPassword\": \"NuevaPass1!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "POST Login con nueva contrasena",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 - la nueva contrasena funciona', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.collectionVariables.set('clienteToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clienteEmail}}\",\n  \"password\": \"{{clientePassword}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "PUT Actualizar imagen de perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('La imagen se actualizo', function () {",
+                  "    pm.expect(pm.response.json().profileImageUrl).to.eql('https://res.cloudinary.com/demo/image/upload/sample.jpg');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profileImageUrl\": \"https://res.cloudinary.com/demo/image/upload/sample.jpg\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/profile-image",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "profile-image"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Services",
+      "item": [
+        {
+          "name": "GET Todos los servicios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Devuelve un array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/services", "host": ["{{baseUrl}}"], "path": ["services"] }
+          }
+        },
+        {
+          "name": "GET Servicios activos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Todos los servicios devueltos estan activos', function () {",
+                  "    json.forEach(s => pm.expect(s.activo).to.eql(true));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/services/active", "host": ["{{baseUrl}}"], "path": ["services", "active"] }
+          }
+        },
+        {
+          "name": "GET Servicios del vendor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('El vendor tiene al menos un servicio (el salon creado en el registro)', function () {",
+                  "    pm.expect(json.length).to.be.above(0);",
+                  "});",
+                  "pm.collectionVariables.set('salonServiceId', json[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/vendor/{{vendorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "vendor", "{{vendorId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Servicio por Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Datos del salon son correctos', function () {",
+                  "    pm.expect(json.id).to.eql(pm.collectionVariables.get('salonServiceId'));",
+                  "    pm.expect(json.vendorId).to.eql(pm.collectionVariables.get('vendorId'));",
+                  "    pm.expect(json.capacidad).to.eql(150);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/{{salonServiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{salonServiceId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Servicio por Id inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "00000000-0000-0000-0000-000000000000"]
+            }
+          }
+        },
+        {
+          "name": "GET Buscar servicios (search)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Encuentra el salon de prueba', function () {",
+                  "    const ids = json.map(s => s.id);",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('salonServiceId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/search?searchTerm=Prueba",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "search"],
+              "query": [{ "key": "searchTerm", "value": "Prueba" }]
+            }
+          }
+        },
+        {
+          "name": "GET Filtrar servicios por precio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Devuelve un array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/filter?minPrice=100&maxPrice=6000",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "filter"],
+              "query": [
+                { "key": "minPrice", "value": "100" },
+                { "key": "maxPrice", "value": "6000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Filtrar servicios - rango invalido (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 - minPrice > maxPrice', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/filter?minPrice=9000&maxPrice=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "filter"],
+              "query": [
+                { "key": "minPrice", "value": "9000" },
+                { "key": "maxPrice", "value": "100" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Crear servicio adicional (Vendor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('El servicio pertenece al vendor', function () {",
+                  "    pm.expect(json.vendorId).to.eql(pm.collectionVariables.get('vendorId'));",
+                  "    pm.expect(json.tipoServicio).to.eql('Catering');",
+                  "});",
+                  "pm.collectionVariables.set('serviceId2', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Catering de Prueba\",\n  \"descripcion\": \"Servicio de catering creado por la suite de Postman.\",\n  \"ubicacion\": \"Montevideo\",\n  \"tipoServicio\": \"Catering\",\n  \"precioMinimo\": 500,\n  \"precioMaximo\": 2000,\n  \"direccion\": {\n    \"departamentoId\": \"{{departamentoId}}\",\n    \"barrioId\": \"{{barrioId}}\",\n    \"calle\": \"Calle Catering 456\"\n  },\n  \"categoryIds\": [\"{{categoryId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/services", "host": ["{{baseUrl}}"], "path": ["services"] }
+          }
+        },
+        {
+          "name": "GET Filtrar servicios por tipo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Solo devuelve servicios de tipo Catering', function () {",
+                  "    pm.expect(json.length).to.be.above(0);",
+                  "    json.forEach(s => pm.expect(s.tipoServicio.toLowerCase()).to.eql('catering'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/filter?tipoServicio=Catering",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "filter"],
+              "query": [{ "key": "tipoServicio", "value": "Catering" }]
+            }
+          }
+        },
+        {
+          "name": "PUT Actualizar servicio (Vendor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('El nombre se actualizo', function () {",
+                  "    pm.expect(pm.response.json().nombre).to.eql('Catering de Prueba Actualizado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Catering de Prueba Actualizado\",\n  \"descripcion\": \"Descripcion actualizada por la suite de Postman.\",\n  \"ubicacion\": \"Montevideo\",\n  \"tipoServicio\": \"Catering\",\n  \"precioMinimo\": 600,\n  \"precioMaximo\": 2500,\n  \"direccion\": {\n    \"departamentoId\": \"{{departamentoId}}\",\n    \"barrioId\": \"{{barrioId}}\",\n    \"calle\": \"Calle Catering 456\"\n  },\n  \"categoryIds\": [\"{{categoryId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services/{{serviceId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{serviceId2}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Actualizar servicio - Forbidden (Cliente, 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - el cliente no es dueno del servicio', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Intento de Edicion Ajena\",\n  \"descripcion\": \"No deberia poder editar esto.\",\n  \"ubicacion\": \"Montevideo\",\n  \"tipoServicio\": \"Catering\",\n  \"precioMinimo\": 600,\n  \"precioMaximo\": 2500,\n  \"direccion\": {\n    \"departamentoId\": \"{{departamentoId}}\",\n    \"barrioId\": \"{{barrioId}}\",\n    \"calle\": \"Calle Catering 456\"\n  },\n  \"categoryIds\": [\"{{categoryId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services/{{serviceId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{serviceId2}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Asociar servicio a salon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.test('El servicio asociado es el catering', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('serviceId2'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId2}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services/{{salonServiceId}}/servicios-asociados",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{salonServiceId}}", "servicios-asociados"]
+            }
+          }
+        },
+        {
+          "name": "GET Servicios asociados del salon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Incluye el catering asociado', function () {",
+                  "    const ids = json.map(s => s.id);",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('serviceId2'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/{{salonServiceId}}/servicios-asociados",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{salonServiceId}}", "servicios-asociados"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Quitar servicio asociado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{vendorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/services/{{salonServiceId}}/servicios-asociados/{{serviceId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{salonServiceId}}", "servicios-asociados", "{{serviceId2}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Visitas",
+      "item": [
+        {
+          "name": "POST Crear visita 1 (Cliente)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);",
+                  "d.setUTCHours(10, 0, 0, 0);",
+                  "pm.collectionVariables.set('visitaFecha1', d.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Visita queda Pendiente', function () { pm.expect(json.estado).to.eql('Pendiente'); });",
+                  "pm.collectionVariables.set('visitaId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{salonServiceId}}\",\n  \"fechaHoraSolicitada\": \"{{visitaFecha1}}\",\n  \"mensaje\": \"Quisiera visitar el salon\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/visitas", "host": ["{{baseUrl}}"], "path": ["visitas"] }
+          }
+        },
+        {
+          "name": "POST Crear visita 2 (Cliente)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);",
+                  "d.setUTCHours(12, 0, 0, 0);",
+                  "pm.collectionVariables.set('visitaFecha2', d.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('visitaId2', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{salonServiceId}}\",\n  \"fechaHoraSolicitada\": \"{{visitaFecha2}}\",\n  \"mensaje\": \"Segunda visita de prueba\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/visitas", "host": ["{{baseUrl}}"], "path": ["visitas"] }
+          }
+        },
+        {
+          "name": "GET Mis visitas (Cliente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Incluye las visitas creadas', function () {",
+                  "    const ids = json.map(v => v.id);",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('visitaId'));",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('visitaId2'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/visitas/mis-visitas",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitas", "mis-visitas"]
+            }
+          }
+        },
+        {
+          "name": "GET Visitas por servicio (Vendor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Devuelve un array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{vendorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/visitas/service/{{salonServiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitas", "service", "{{salonServiceId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Visitas por servicio - Forbidden (Cliente, 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - el cliente no es dueno del servicio', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/visitas/service/{{salonServiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitas", "service", "{{salonServiceId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Confirmar visita sin reserva - fecha futura (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Regla de negocio: una visita solo puede marcarse 'Confirmada' (cumplida)",
+                  "// cuando su fecha/hora ya paso. Como es futura, debe fallar con 400.",
+                  "pm.test('Status 400 - no se puede cumplir una visita futura', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crearReserva\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/visitas/{{visitaId2}}/confirmar",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitas", "{{visitaId2}}", "confirmar"]
+            }
+          }
+        },
+        {
+          "name": "POST Confirmar visita creando reserva (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('La reserva queda confirmada', function () {",
+                  "    pm.expect(json.confirmada).to.eql(true);",
+                  "    pm.expect(json.montoAcordado).to.eql(3500);",
+                  "});",
+                  "pm.collectionVariables.set('reservaId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crearReserva\": true,\n  \"horasReservadas\": 4,\n  \"montoAcordado\": 3500\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/visitas/{{visitaId}}/confirmar",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitas", "{{visitaId}}", "confirmar"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Eliminar visita 2 (cleanup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{vendorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/visitas/{{visitaId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitas", "{{visitaId2}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Reservas",
+      "item": [
+        {
+          "name": "POST Crear reserva sin token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 sin autenticacion', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{salonServiceId}}\",\n  \"fechaReservaCliente\": \"2030-01-01T10:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+          }
+        },
+        {
+          "name": "POST Crear reserva directa 1 (Cliente)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);",
+                  "d.setUTCHours(10, 0, 0, 0);",
+                  "pm.collectionVariables.set('reservaFecha2', d.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('La reserva nace sin confirmar', function () { pm.expect(json.confirmada).to.eql(false); });",
+                  "pm.collectionVariables.set('reservaId2', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{salonServiceId}}\",\n  \"fechaReservaCliente\": \"{{reservaFecha2}}\",\n  \"mensaje\": \"Reserva directa de prueba 1\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+          }
+        },
+        {
+          "name": "POST Crear reserva directa 2 (Cliente)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);",
+                  "d.setUTCHours(12, 0, 0, 0);",
+                  "pm.collectionVariables.set('reservaFecha3', d.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('reservaId3', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{salonServiceId}}\",\n  \"fechaReservaCliente\": \"{{reservaFecha3}}\",\n  \"mensaje\": \"Reserva directa de prueba 2\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+          }
+        },
+        {
+          "name": "POST Crear reserva directa 3 (Cliente)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);",
+                  "d.setUTCHours(14, 0, 0, 0);",
+                  "pm.collectionVariables.set('reservaFecha4', d.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('reservaId4', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{salonServiceId}}\",\n  \"fechaReservaCliente\": \"{{reservaFecha4}}\",\n  \"mensaje\": \"Reserva directa de prueba 3 (para rechazar)\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+          }
+        },
+        {
+          "name": "GET Mis reservas (Cliente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const ids = json.map(r => r.id);",
+                  "pm.test('Incluye todas las reservas creadas', function () {",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('reservaId'));",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('reservaId2'));",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('reservaId3'));",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('reservaId4'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/mis-reservas",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "mis-reservas"]
+            }
+          }
+        },
+        {
+          "name": "GET Reservas por servicio (Vendor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Devuelve un array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{vendorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/service/{{salonServiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "service", "{{salonServiceId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Reservas por servicio - Forbidden (Cliente, 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - el cliente no es dueno del servicio', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/service/{{salonServiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "service", "{{salonServiceId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Confirmar reserva directa 1 (Vendor, 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda confirmada', function () {",
+                  "    pm.expect(pm.response.json().confirmada).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"horasReservadas\": 2,\n  \"montoAcordado\": 900\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId2}}/confirmar",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId2}}", "confirmar"]
+            }
+          }
+        },
+        {
+          "name": "POST Confirmar reserva ya confirmada (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409 Conflict - ya estaba confirmada', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"horasReservadas\": 2,\n  \"montoAcordado\": 900\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId2}}/confirmar",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId2}}", "confirmar"]
+            }
+          }
+        },
+        {
+          "name": "PUT Actualizar datos financieros (Vendor, 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('El monto se actualizo', function () {",
+                  "    pm.expect(pm.response.json().montoAcordado).to.eql(4000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"horasReservadas\": 5,\n  \"montoAcordado\": 4000\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}/financiero",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId}}", "financiero"]
+            }
+          }
+        },
+        {
+          "name": "PUT Actualizar financiero - reserva no confirmada (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 - solo se puede actualizar reservas confirmadas', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"horasReservadas\": 1,\n  \"montoAcordado\": 100\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId3}}/financiero",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId3}}", "financiero"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Rechazar reserva pendiente (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{vendorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId4}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId4}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Pagos",
+      "item": [
+        {
+          "name": "POST Crear pago (Vendor, 201)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('pagoFecha', new Date().toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test('El pago pertenece a la reserva confirmada', function () {",
+                  "    pm.expect(json.reservaId).to.eql(pm.collectionVariables.get('reservaId'));",
+                  "    pm.expect(json.tipoPago).to.eql('Seña');",
+                  "});",
+                  "pm.collectionVariables.set('pagoId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservaId\": \"{{reservaId}}\",\n  \"tipoPago\": \"Seña\",\n  \"importe\": 500,\n  \"fechaPago\": \"{{pagoFecha}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/pagos", "host": ["{{baseUrl}}"], "path": ["pagos"] }
+          }
+        },
+        {
+          "name": "POST Crear pago - tipo invalido (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 - tipo de pago invalido', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservaId\": \"{{reservaId}}\",\n  \"tipoPago\": \"Invalido\",\n  \"importe\": 500,\n  \"fechaPago\": \"{{pagoFecha}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/pagos", "host": ["{{baseUrl}}"], "path": ["pagos"] }
+          }
+        },
+        {
+          "name": "POST Crear pago - reserva no confirmada (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 - solo se registran pagos en reservas confirmadas', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservaId\": \"{{reservaId3}}\",\n  \"tipoPago\": \"Seña\",\n  \"importe\": 100,\n  \"fechaPago\": \"{{pagoFecha}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/pagos", "host": ["{{baseUrl}}"], "path": ["pagos"] }
+          }
+        },
+        {
+          "name": "POST Crear pago - Forbidden (Cliente, 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - el cliente no es dueno del servicio', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservaId\": \"{{reservaId}}\",\n  \"tipoPago\": \"Seña\",\n  \"importe\": 100,\n  \"fechaPago\": \"{{pagoFecha}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/pagos", "host": ["{{baseUrl}}"], "path": ["pagos"] }
+          }
+        },
+        {
+          "name": "PUT Actualizar pago (Vendor, 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('El importe se actualizo', function () {",
+                  "    pm.expect(pm.response.json().importe).to.eql(800);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoPago\": \"Parcial\",\n  \"importe\": 800,\n  \"fechaPago\": \"{{pagoFecha}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pagos/{{pagoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pagos", "{{pagoId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Pagos de una reserva (Vendor, 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Incluye el pago creado', function () {",
+                  "    const ids = json.map(p => p.id);",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('pagoId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{vendorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/pagos/reserva/{{reservaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pagos", "reserva", "{{reservaId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Pagos de una reserva - Forbidden (Cliente, 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - el cliente no es dueno del servicio', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/pagos/reserva/{{reservaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pagos", "reserva", "{{reservaId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Rechazar reserva3 (cleanup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{vendorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId3}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId3}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Resenas",
+      "item": [
+        {
+          "name": "POST Crear resena - reserva no realizada (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Regla de negocio: solo se puede resenar una reserva ya realizada",
+                  "// (fecha pasada). La reserva usada es futura, asi que debe fallar.",
+                  "pm.test('Status 400 - la reserva todavia no fue realizada', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservaId\": \"{{reservaId}}\",\n  \"puntuacion\": 5,\n  \"comentario\": \"Excelente atencion\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/resenas", "host": ["{{baseUrl}}"], "path": ["resenas"] }
+          }
+        },
+        {
+          "name": "POST Crear resena - no pertenece al usuario (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 - el vendor no es dueno de la reserva', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{vendorToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservaId\": \"{{reservaId}}\",\n  \"puntuacion\": 1,\n  \"comentario\": \"No deberia poder crear esto\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/resenas", "host": ["{{baseUrl}}"], "path": ["resenas"] }
+          }
+        },
+        {
+          "name": "GET Resenas de un servicio (publico)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Devuelve un array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resenas/service/{{salonServiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["resenas", "service", "{{salonServiceId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
