@@ -24,6 +24,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Pago> Pagos { get; set; }
     public DbSet<SalonService> SalonServices { get; set; }
     public DbSet<Resena> Resenas { get; set; }
+    public DbSet<Propuesta> Propuestas { get; set; }
+    public DbSet<PropuestaServicio> PropuestaServicios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -243,6 +245,38 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<Propuesta>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Nombre).IsRequired().HasMaxLength(150);
+            entity.Property(p => p.FechaCreacion).IsRequired();
+
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(p => p.Salon)
+                .WithMany()
+                .HasForeignKey(p => p.SalonId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PropuestaServicio>(entity =>
+        {
+            entity.HasKey(ps => new { ps.PropuestaId, ps.ServiceId });
+
+            entity.HasOne(ps => ps.Propuesta)
+                .WithMany(p => p.Servicios)
+                .HasForeignKey(ps => ps.PropuestaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(ps => ps.Service)
+                .WithMany()
+                .HasForeignKey(ps => ps.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         SeedGeography(modelBuilder);
         SeedData(modelBuilder);
     }
@@ -280,31 +314,82 @@ public class ApplicationDbContext : DbContext
 
         var barrios = new[]
         {
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000001"), DepartamentoId = montevideoId, Nombre = "Centro" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000002"), DepartamentoId = montevideoId, Nombre = "Cordón" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000003"), DepartamentoId = montevideoId, Nombre = "Ciudad Vieja" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000004"), DepartamentoId = montevideoId, Nombre = "Palermo" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000005"), DepartamentoId = montevideoId, Nombre = "Parque Rodó" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000006"), DepartamentoId = montevideoId, Nombre = "Pocitos" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000001"), DepartamentoId = montevideoId, Nombre = "Ciudad Vieja" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000002"), DepartamentoId = montevideoId, Nombre = "Centro" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000003"), DepartamentoId = montevideoId, Nombre = "Barrio Sur" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000004"), DepartamentoId = montevideoId, Nombre = "Cordón" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000005"), DepartamentoId = montevideoId, Nombre = "Palermo" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000006"), DepartamentoId = montevideoId, Nombre = "Parque Rodó" },
             new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000007"), DepartamentoId = montevideoId, Nombre = "Punta Carretas" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000008"), DepartamentoId = montevideoId, Nombre = "Malvín" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000008"), DepartamentoId = montevideoId, Nombre = "Pocitos" },
             new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000009"), DepartamentoId = montevideoId, Nombre = "Buceo" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000010"), DepartamentoId = montevideoId, Nombre = "Punta Gorda" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000011"), DepartamentoId = montevideoId, Nombre = "Carrasco" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000012"), DepartamentoId = montevideoId, Nombre = "Cerro" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000013"), DepartamentoId = montevideoId, Nombre = "Aguada" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000014"), DepartamentoId = montevideoId, Nombre = "Reducto" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000015"), DepartamentoId = montevideoId, Nombre = "La Blanqueada" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000016"), DepartamentoId = montevideoId, Nombre = "Prado" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000017"), DepartamentoId = montevideoId, Nombre = "Tajamar" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000018"), DepartamentoId = montevideoId, Nombre = "La Comercial" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000019"), DepartamentoId = montevideoId, Nombre = "Brazo Oriental" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000020"), DepartamentoId = montevideoId, Nombre = "Belvedere" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000021"), DepartamentoId = montevideoId, Nombre = "Capurro" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000022"), DepartamentoId = montevideoId, Nombre = "Jacinto Vera" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000023"), DepartamentoId = montevideoId, Nombre = "Paso de las Duranas" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000024"), DepartamentoId = montevideoId, Nombre = "Piedras Blancas" },
-            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000025"), DepartamentoId = montevideoId, Nombre = "Casavalle" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000010"), DepartamentoId = montevideoId, Nombre = "La Unión" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000011"), DepartamentoId = montevideoId, Nombre = "La Blanqueada" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000012"), DepartamentoId = montevideoId, Nombre = "Parque Batlle" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000013"), DepartamentoId = montevideoId, Nombre = "Villa Dolores" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000014"), DepartamentoId = montevideoId, Nombre = "La Mondiola" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000015"), DepartamentoId = montevideoId, Nombre = "Malvín" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000016"), DepartamentoId = montevideoId, Nombre = "Malvín Norte" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000017"), DepartamentoId = montevideoId, Nombre = "Punta Gorda" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000018"), DepartamentoId = montevideoId, Nombre = "Carrasco" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000019"), DepartamentoId = montevideoId, Nombre = "Carrasco Norte" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000020"), DepartamentoId = montevideoId, Nombre = "Tres Cruces" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000021"), DepartamentoId = montevideoId, Nombre = "La Comercial" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000022"), DepartamentoId = montevideoId, Nombre = "Villa Muñoz" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000023"), DepartamentoId = montevideoId, Nombre = "Goes" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000024"), DepartamentoId = montevideoId, Nombre = "Aguada" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000025"), DepartamentoId = montevideoId, Nombre = "Reducto" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000026"), DepartamentoId = montevideoId, Nombre = "Arroyo Seco" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000027"), DepartamentoId = montevideoId, Nombre = "Bella Vista" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000028"), DepartamentoId = montevideoId, Nombre = "La Figurita" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000029"), DepartamentoId = montevideoId, Nombre = "Jacinto Vera" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000030"), DepartamentoId = montevideoId, Nombre = "Larrañaga" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000031"), DepartamentoId = montevideoId, Nombre = "Maroñas" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000032"), DepartamentoId = montevideoId, Nombre = "Parque Guaraní" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000033"), DepartamentoId = montevideoId, Nombre = "Flor de Maroñas" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000034"), DepartamentoId = montevideoId, Nombre = "Villa Española" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000035"), DepartamentoId = montevideoId, Nombre = "Simón Bolívar" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000036"), DepartamentoId = montevideoId, Nombre = "Brazo Oriental" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000037"), DepartamentoId = montevideoId, Nombre = "Atahualpa" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000038"), DepartamentoId = montevideoId, Nombre = "Prado" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000039"), DepartamentoId = montevideoId, Nombre = "Capurro" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000040"), DepartamentoId = montevideoId, Nombre = "Paso Molino" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000041"), DepartamentoId = montevideoId, Nombre = "Belvedere" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000042"), DepartamentoId = montevideoId, Nombre = "Sayago" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000043"), DepartamentoId = montevideoId, Nombre = "Paso de las Duranas" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000044"), DepartamentoId = montevideoId, Nombre = "Aires Puros" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000045"), DepartamentoId = montevideoId, Nombre = "Cerrito de la Victoria" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000046"), DepartamentoId = montevideoId, Nombre = "Pérez Castellanos" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000047"), DepartamentoId = montevideoId, Nombre = "Ituzaingó" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000048"), DepartamentoId = montevideoId, Nombre = "La Cruz de Carrasco" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000049"), DepartamentoId = montevideoId, Nombre = "Bella Italia" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000050"), DepartamentoId = montevideoId, Nombre = "Punta de Rieles" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000051"), DepartamentoId = montevideoId, Nombre = "Nueva España" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000052"), DepartamentoId = montevideoId, Nombre = "La Chancha" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000053"), DepartamentoId = montevideoId, Nombre = "Jardines del Hipódromo" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000054"), DepartamentoId = montevideoId, Nombre = "Piedras Blancas" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000055"), DepartamentoId = montevideoId, Nombre = "Marconi" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000056"), DepartamentoId = montevideoId, Nombre = "Plácido Ellauri" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000057"), DepartamentoId = montevideoId, Nombre = "Las Acacias" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000058"), DepartamentoId = montevideoId, Nombre = "Casavalle" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000059"), DepartamentoId = montevideoId, Nombre = "Manga" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000060"), DepartamentoId = montevideoId, Nombre = "Lavalleja" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000061"), DepartamentoId = montevideoId, Nombre = "Peñarol" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000062"), DepartamentoId = montevideoId, Nombre = "Sayago Norte" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000063"), DepartamentoId = montevideoId, Nombre = "Conciliación" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000064"), DepartamentoId = montevideoId, Nombre = "Nuevo París" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000065"), DepartamentoId = montevideoId, Nombre = "La Teja / Pueblo Victoria" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000066"), DepartamentoId = montevideoId, Nombre = "Tres Ombúes" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000067"), DepartamentoId = montevideoId, Nombre = "El Tobogán" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000068"), DepartamentoId = montevideoId, Nombre = "Cerro Norte" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000069"), DepartamentoId = montevideoId, Nombre = "Villa del Cerro" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000070"), DepartamentoId = montevideoId, Nombre = "Casabó" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000071"), DepartamentoId = montevideoId, Nombre = "Santa Catalina" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000072"), DepartamentoId = montevideoId, Nombre = "La Paloma-Tomkinson" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000073"), DepartamentoId = montevideoId, Nombre = "Villa Colón" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000074"), DepartamentoId = montevideoId, Nombre = "Lezica" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000075"), DepartamentoId = montevideoId, Nombre = "Los Bulevares" },
+            new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000076"), DepartamentoId = montevideoId, Nombre = "Paso de la Arena" },
 
             new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000101"), DepartamentoId = canelonesId, Nombre = "Ciudad de la Costa" },
             new Barrio { Id = Guid.Parse("20000000-0000-0000-0000-000000000102"), DepartamentoId = canelonesId, Nombre = "Las Piedras" },
