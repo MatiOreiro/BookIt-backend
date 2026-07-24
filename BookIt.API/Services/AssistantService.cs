@@ -206,6 +206,14 @@ public class AssistantService : IAssistantService
             sb.AppendLine($"- Horario de visitas: {service.HoraAperturaVisita ?? 8}:00 a {service.HoraCierreVisita ?? 22}:00");
         if (service.AvgRating.HasValue)
             sb.AppendLine($"- Calificación promedio: {service.AvgRating:F1} ({service.ReviewCount} reseñas)");
+        if (service.Vendor != null)
+        {
+            sb.AppendLine($"- Proveedor: {service.Vendor.Nombre}");
+            if (!string.IsNullOrWhiteSpace(service.Vendor.Telefono))
+                sb.AppendLine($"- Teléfono de contacto del proveedor: {service.Vendor.Telefono}");
+            if (!string.IsNullOrWhiteSpace(service.Vendor.Email))
+                sb.AppendLine($"- Email de contacto del proveedor: {service.Vendor.Email}");
+        }
 
         return sb.ToString();
     }
